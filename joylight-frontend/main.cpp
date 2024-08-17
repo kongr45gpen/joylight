@@ -3,48 +3,42 @@
 #include <iostream>
 
 #include <QApplication>
-#include <QUdpSocket>
-#include <QThread>
 
+#include "zmq.hpp"
 #include "json.hpp"
 
 int main(int argc, char *argv[])
 {
-    QUdpSocket socket;
-    auto address = QStringLiteral("127.0.0.1");
-    if (!socket.bind(QHostAddress::AnyIPv4, 0, QUdpSocket::ShareAddress)) {
-        std::cerr << "Failed to bind to port 7096" << std::endl;
-        return 1;
-    } else {
-        std::cerr << "Bound to local port " << socket.localPort() << std::endl;
-    }
-    socket.joinMulticastGroup(QHostAddress(address));
+    zmq::context_t context(1);
+
+	zmq::socket_t requester(context, ZMQ_REQ);
+	requester.connect("tcp://localhost:5555");
+ 
+    std::cout << "Connection to ZeroMQ" << std::endl;
+    requester.send(zmq::str_buffer("Give me your fixtures please"));
+    zmq::message_t response;
+    (void) requester.recv(response);
     
-    while (socket.pendingDatagramSize() <= 0 ) {
-        std::cerr << "Waiting for data..." << std::endl;
-        socket.writeDatagram("Hello\n", QHostAddress(address), 7096);
-        QThread::msleep(100);
-    }
-    QByteArray datagram;
-    datagram.resize(socket.pendingDatagramSize());
-    socket.readDatagram(datagram.data(), datagram.size());
+    std::cout << "Received reply " << " [" << response << "]" << std::endl;
 
-    auto json = datagram.toStdString();
-    std::cout << "Received JSON data: " << json << std::endl;
-
-    auto j = nlohmann::json::parse(json);
+    auto j = nlohmann::json::parse(response.to_string());
 
     std::cout << "Interesting light statistics:" << std::endl;
-    std::cout << "  Number of lights: " << j.size() << std::endl;
+    std::cout << "  Number of lights: " << j["fixtures"].size() << std::endl;
     std::cout << "  Light names: ";
-    for (auto& light : j) {
+    for (auto& light : j["fixtures"]) {
         std::cout << light["name"] << ", ";
+    }
+    std::cout << "\n  Number of templates: " << j["templates"].size() << std::endl;
+    std::cout << "  Template names: ";
+    for (auto& template_ : j["templates"]) {
+        std::cout << template_["name"] << ", ";
     }
     std::cout << std::endl;
 
     QApplication a(argc, argv);
     MainWindow w;
-    w.setText(QString::fromStdString(j.dump(4)));
+    w.setText(QString::fromStdString(j["templates"].dump(4)));
     w.show();
     return a.exec();
 }

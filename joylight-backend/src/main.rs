@@ -1,12 +1,14 @@
 mod fixture;
 mod parameter;
+mod fixture_template;
 
+use std::collections::BTreeMap;
 use std::boxed::Box;
-
-use std::net::UdpSocket;
 
 use serde_json::json;
 use std::{thread, time};
+
+use zmq;
 
 fn main() {
     println!("Hello, world!");
@@ -28,24 +30,114 @@ fn main() {
     let color = parameter::Color { r: 1.0, g: 0.0, b: 0.0 };
     fixture2.parameters.insert("color".to_string(), Box::new(parameter::DMXParameterType::Color(color)));
 
-    println!("{:#?}", fixture1);
-    println!("{:#?}", fixture2);
+    let mut templates = Vec::new();
 
-    let socket = UdpSocket::bind("127.0.0.1:7096").expect("Couldn't bind to address");
+    templates.push(fixture_template::FixtureTemplate {
+        name: "Dimmer".to_string(),
+        parameters: BTreeMap::from([
+            ("brightness".to_string(), "uint8".to_string())
+        ])
+    });
+
+    templates.push(fixture_template::FixtureTemplate {
+        name: "RGB".to_string(),
+        parameters: BTreeMap::from([
+            ("red".to_string(), "uint8".to_string()),
+            ("green".to_string(), "uint8".to_string()),
+            ("blue".to_string(), "uint8".to_string())
+        ])
+    });
+
+    templates.push(fixture_template::FixtureTemplate {
+        name: "RGBW".to_string(),
+        parameters: BTreeMap::from([
+            ("red".to_string(), "uint8".to_string()),
+            ("green".to_string(), "uint8".to_string()),
+            ("blue".to_string(), "uint8".to_string()),
+            ("white".to_string(), "uint8".to_string()),
+        ])
+    });
+
+    templates.push(fixture_template::FixtureTemplate {
+        name: "DRGB".to_string(),
+        parameters: BTreeMap::from([
+            ("brightness".to_string(), "uint8".to_string()),
+            ("red".to_string(), "uint8".to_string()),
+            ("green".to_string(), "uint8".to_string()),
+            ("blue".to_string(), "uint8".to_string()),
+        ])
+    });
+
+    templates.push(fixture_template::FixtureTemplate {
+        name: "Genericbrand Mover".to_string(),
+        parameters: BTreeMap::from([
+            ("brightness".to_string(), "uint8".to_string()),
+            ("red".to_string(), "uint8".to_string()),
+            ("green".to_string(), "uint8".to_string()),
+            ("blue".to_string(), "uint8".to_string()),
+            ("pan".to_string(), "uint16".to_string()),
+            ("tilt".to_string(), "uint16".to_string()),
+            ("gobo_static".to_string(), "1-10: circle 11-20: star 21-30: rectange 31-255: off".to_string()),
+            ("gobo_rotating".to_string(), "1-10: clouds 11-20: lines 21-30: tree 31-255: off".to_string()),
+            ("gobo_speed".to_string(), "uint8".to_string()),
+            ("strobe".to_string(), "0-100: off 101-255: speed".to_string()),
+            ("focus".to_string(), "uint8".to_string()),
+            ("zoom".to_string(), "uint8".to_string()),
+            ("mode".to_string(), "0-10: ok 11-14: reset 15-19: brtdown 20-24: brtup 25-29: park".to_string()),
+        ])
+    });
+
+    templates.push(fixture_template::FixtureTemplate {
+        name: "Genericbrand LED Wash Mover".to_string(),
+        parameters: BTreeMap::from([
+            ("red".to_string(), "uint8".to_string()),
+            ("green".to_string(), "uint8".to_string()),
+            ("blue".to_string(), "uint8".to_string()),
+            ("coldwhite".to_string(), "uint8".to_string()),
+            ("warmwhite".to_string(), "uint8".to_string()),
+            ("pan".to_string(), "uint16".to_string()),
+            ("tilt".to_string(), "uint16".to_string()),
+            ("focus".to_string(), "uint8".to_string()),
+        ])
+    });
+
+    templates.push(fixture_template::FixtureTemplate {
+        name: "Genericbrand Triple LED".to_string(),
+        parameters: BTreeMap::from([
+            ("red_1".to_string(), "uint8".to_string()),
+            ("green_1".to_string(), "uint8".to_string()),
+            ("blue_1".to_string(), "uint8".to_string()),
+            ("red_2".to_string(), "uint8".to_string()),
+            ("green_2".to_string(), "uint8".to_string()),
+            ("blue_2".to_string(), "uint8".to_string()),
+            ("red_3".to_string(), "uint8".to_string()),
+            ("green_3".to_string(), "uint8".to_string()),
+            ("blue_3".to_string(), "uint8".to_string()),
+        ])
+    });
+
+    println!("{:#?}", templates);
 
 
-    while true {
-        let mut buf = [0; 10];
-        let (number_of_bytes, src_addr) = socket.recv_from(&mut buf)
-                                                .expect("Didn't receive data");
-    
-        let mut json_buf = [0; 255];
-        let json_str = json!([fixture1, fixture2]).to_string();
-        for (i, c) in json_str.chars().enumerate() {
-            json_buf[i] = c as u8;
-        }
-    
-        println!("Received {} bytes from {:?}", number_of_bytes, src_addr);
-        socket.send_to(&json_buf, src_addr).expect("Couldn't send data");
+    let context = zmq::Context::new();
+    let server = context.socket(zmq::REP).unwrap();
+    server.bind("tcp://*:5555").unwrap();
+
+    println!("ZeroMQ connection started");
+
+    let json_str = json!({
+        // Fixture templates, i.e. fixtures that _can_ be added to the show
+        "templates": templates,
+        // Fixtures, i.e. fixtures that are already in the show. (TODO each fixture should correspond to one template)
+        "fixtures": vec![fixture1, fixture2]
+    }).to_string();
+
+    loop {
+        let string = server.recv_string(0).unwrap().unwrap();
+        println!("Received request: {}", string);
+
+        thread::sleep(time::Duration::from_millis(100));
+
+        server.send(json_str.as_str(), 0).unwrap();
     }
 }
