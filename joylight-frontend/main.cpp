@@ -3,8 +3,6 @@
 #include <iostream>
 
 #include <QApplication>
-#include <QUdpSocket>
-#include <QThread>
 #include <QFile>
 
 

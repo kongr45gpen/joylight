@@ -14,29 +14,26 @@ FixtureSelect::FixtureSelect(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::FixtureSelect)
 {
+    auto socket = ConnectToSocket();
 
+    // TODO error handling
+    try {
+        socket.send(zmq::str_buffer("Give me your fixtures please! Thanks in advance."));
+        zmq::message_t response;
+        (void) socket.recv(response);
 
-    ConnectToSocket(socket);
+        auto json = response.to_string();
+        std::cout << "Received JSON data: " << json << std::endl;
 
-    while (socket.pendingDatagramSize() <= 0 ) {
-        std::cerr << "Quering fixture data..." << std::endl;
-        socket.writeDatagram("Hello\n", QHostAddress(address), 7096);
-        QThread::msleep(100);
+        auto j = nlohmann::json::parse(json);
+
+        std::cout << "Interesting light statistics:" << std::endl;
+        std::cout << "  Number of lights: " << j["fixtures"].size() << std::endl;
+        std::cout << "  Light names: ";
     }
-
-    QByteArray datagram;
-    datagram.resize(socket.pendingDatagramSize());
-    socket.readDatagram(datagram.data(), datagram.size());
-
-    auto json = datagram.toStdString();
-    std::cout << "Received JSON data: " << json << std::endl;
-
-    auto j = nlohmann::json::parse(json);
-
-    // mmm very interesting
-    std::cout << "Interesting light statistics:" << std::endl;
-    std::cout << "  Number of lights: " << j.size() << std::endl;
-    std::cout << "  Light names: ";
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
 
     ui->setupUi(this);
 

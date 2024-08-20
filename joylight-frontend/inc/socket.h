@@ -1,8 +1,8 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <QUdpSocket>
+#include "zmq.hpp"
 
-void ConnectToSocket(QUdpSocket &socket);
+zmq::socket_t ConnectToSocket();
 
 #endif // SOCKET_H

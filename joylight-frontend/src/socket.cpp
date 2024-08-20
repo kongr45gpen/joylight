@@ -1,18 +1,20 @@
 #include <iostream>
 
-
+#include "zmq.hpp"
 #include "socket.h"
 #include "config.h"
 
+// TODO: Have a more proper initialisation of this
+zmq::context_t context(1); 
+
 // TODO: Should socket be global?
-void ConnectToSocket(QUdpSocket &socket){
+zmq::socket_t ConnectToSocket() {
+    std::cout << "Connecting to socket..." << std::endl;
 
-    if (!socket.bind(QHostAddress::AnyIPv4, 0, QUdpSocket::ShareAddress)) {
-        std::cerr << "Failed to bind to port 7096" << std::endl;
-        return;
-    } else {
-        std::cerr << "Bound to local port " << socket.localPort() << std::endl;
-    }
+    zmq::socket_t requester(context, ZMQ_REQ);
+	requester.connect(Address);
 
-    socket.joinMulticastGroup(QHostAddress(address));
+    std::cout << "Requester created. Open backend if not already up." << std::endl;
+
+    return requester;
 }

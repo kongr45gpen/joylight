@@ -5,7 +5,6 @@
 
 #include "fixture.h"
 
-#include <QUdpSocket>
 #include <QDialog>
 #include <QListWidget>
 
@@ -24,7 +23,6 @@ public:
 
 private:
     Ui::FixtureDialog *ui;
-    QUdpSocket socket;
 
 private slots:
     void openAddFixtureDialog();

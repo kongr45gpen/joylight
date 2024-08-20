@@ -8,6 +8,6 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-#define address QStringLiteral("127.0.0.1")
+inline const std::string Address = "tcp://localhost:5555";
 
 #endif // CONFIG_H
