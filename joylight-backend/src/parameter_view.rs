@@ -1,0 +1,191 @@
+//! A view of a parameter's value, designed to be readable and editable by the user
+
+use std::fmt::Debug;
+use serde::{Deserialize, Serialize};
+use crate::{colors::{ColorModel, RGBTuple}, parameter_value::{ParameterValue}};
+use dyn_clone::DynClone;
+
+#[derive(Clone, Debug)]
+pub enum InputType {
+    F64(f64),
+    I64(i64),
+    String(String),
+}
+
+pub trait ParameterView: DynClone + Debug {
+    fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(),()> {
+        Err(())
+    }
+
+    fn from_value(&self, value: &ParameterValue) -> Result<Vec<InputType>, ()> {
+        Err(())
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SliderView {
+    pub min: f64,
+    pub max: f64,
+    pub step: f64,
+    pub unit: String,
+}
+
+impl ParameterView for SliderView {
+    fn from_value(&self, value: &ParameterValue) -> Result<Vec<InputType>, ()> {
+        let ParameterValue::Number(numbers) = value else {
+            return Err(());
+        };
+
+        numbers.first().map(|number| {
+            vec![InputType::F64(*number)]
+        }).ok_or(())
+    }
+
+    fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(),()> {
+        let ParameterValue::Number(numbers) = value else {
+            return Err(());
+        };
+
+        if let Some(InputType::F64(number)) = input.first() {
+            numbers[0] = *number;
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Rotation2DView {
+    pub pan_min: f64,
+    pub pan_max: f64,
+    pub tilt_min: f64,
+    pub tilt_max: f64,
+    pub unit: String
+}
+
+// impl ParameterView for Rotation2DView {
+// }
+
+/// A basic percentage slider from 0% to 100%
+pub fn percentage() -> SliderView {
+    SliderView {
+        min: 0.0,
+        max: 100.0,
+        step: 0.0,
+        unit: "%".to_string(),
+    }
+}
+
+/// A basic angle slider from 0° to 360°
+pub fn circle() -> SliderView {
+    SliderView {
+        min: 0.0,
+        max: 360.0,
+        step: 0.0,
+        unit: "°".to_string(),
+    }
+}
+
+
+
+/// A view of a color parameter where the end color is made up from an addition (or subtraction) of
+/// simpler component colors.
+///
+/// RGB, RGBW, RGBQ, CMY and others are typical examples of views supported by this structure.
+#[derive(Clone, Debug)]
+pub struct ColorComponentView {
+    /// A list of RGB components that are included in the view.
+    /// Usually this will be RGB itself (i.e. `[[255,0,0] [0,255,0] [0,0,255]]`),
+    pub components: Vec<RGBTuple>,
+    /// [false] if the components are additive (e.g. RGB), [true] if they are subtractive (e.g. CMY)
+    pub subtractive: bool,
+    /// Whether the view includes a Quality slider for balance control when the output components
+    /// are more than the input components
+    pub has_quality: bool,
+    /// A human-readable description of the view space
+    pub name: String,
+}
+
+impl ParameterView for ColorComponentView {
+}
+
+pub fn rgb() -> ColorComponentView {
+    ColorComponentView {
+        components: vec![
+            RGBTuple([255, 0, 0]),
+            RGBTuple([0, 255, 0]),
+            RGBTuple([0, 0, 255]),
+        ],
+        subtractive: false,
+        has_quality: false,
+        name: "RGB".to_string(),
+    }
+}
+
+// /// The standard RGB view
+// pub static RGB: ColorComponentView = ColorComponentView {
+//     components: vec![
+//         RGBTuple([255, 0, 0]),
+//         RGBTuple([0, 255, 0]),
+//         RGBTuple([0, 0, 255]),
+//     ],
+//     subtractive: false,
+//     has_quality: false,
+//     name: "RGB".to_string(),
+// };
+
+// /// The standard RGB + Quality view
+// pub static RGBQ: ColorComponentView = ColorComponentView {
+//     components: vec![
+//         RGBTuple([255, 0, 0]),
+//         RGBTuple([0, 255, 0]),
+//         RGBTuple([0, 0, 255]),
+//     ],
+//     subtractive: false,
+//     has_quality: true,
+//     name: "RGBQ".to_string(),
+// };
+
+// /// The standard RGBW view
+// pub static RGBW: ColorComponentView = ColorComponentView {
+//     components: vec![
+//         RGBTuple([255, 0, 0]),
+//         RGBTuple([0, 255, 0]),
+//         RGBTuple([0, 0, 255]),
+//         RGBTuple([255, 255, 255]),
+//     ],
+//     subtractive: false,
+//     has_quality: false,
+//     name: "RGBW".to_string(),
+// };
+
+// /// The standard subtractive CMY view
+// pub static CMY: ColorComponentView = ColorComponentView {
+//     components: vec![
+//         RGBTuple([255, 0, 0]),
+//         RGBTuple([0, 255, 0]),
+//         RGBTuple([0, 0, 255]),
+//     ],
+//     subtractive: true,
+//     has_quality: false,
+//     name: "CMY".to_string(),
+// };
+
+/// A more generic view supporting more generic [ColorModel]s
+#[derive(Clone, Debug)]
+pub struct ColorModelView {
+    /// The color model that this view represents
+    pub model: ColorModel,
+    pub has_quality: bool,
+    pub name: String,
+}
+
+impl ParameterView for ColorModelView {
+}
+
+// pub static HSV: ColorModelView = ColorModelView {
+//     model: ColorModel::HSV,
+//     has_quality: false,
+//     name: "HSV".to_string(),
+// };
