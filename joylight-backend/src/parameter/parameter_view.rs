@@ -1,9 +1,12 @@
 //! A view of a parameter's value, designed to be readable and editable by the user
 
-use std::fmt::Debug;
-use serde::{Deserialize, Serialize};
-use crate::{colors::{ColorModel, RGBTuple}, parameter::parameter_value::ParameterValue};
+use crate::{
+    colors::{ColorModel, RGBTuple},
+    parameter::parameter_value::ParameterValue,
+};
 use dyn_clone::DynClone;
+use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 
 /// Protocol input value that may correspond to a view.
 #[derive(Clone, Debug)]
@@ -14,12 +17,12 @@ pub enum InputType {
 }
 
 /// A parameter view represents the user-editable representation of a parameter's type and value.
-/// 
+///
 /// A parameter could be associated with different types of views, but only one can be active at any time.
-/// 
+///
 /// It can be reliably converted to and from the corresponding parameter value
 pub trait ParameterView: DynClone + Debug {
-    fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(),()> {
+    fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(), ()> {
         Err(())
     }
 
@@ -43,12 +46,13 @@ impl ParameterView for SliderView {
             return Err(());
         };
 
-        numbers.first().map(|number| {
-            vec![InputType::F64(*number)]
-        }).ok_or(())
+        numbers
+            .first()
+            .map(|number| vec![InputType::F64(*number)])
+            .ok_or(())
     }
 
-    fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(),()> {
+    fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(), ()> {
         let ParameterValue::Number(numbers) = value else {
             return Err(());
         };
@@ -69,7 +73,7 @@ pub struct Rotation2DView {
     pub pan_max: f64,
     pub tilt_min: f64,
     pub tilt_max: f64,
-    pub unit: String
+    pub unit: String,
 }
 
 // impl ParameterView for Rotation2DView {
@@ -95,13 +99,11 @@ pub fn circle() -> SliderView {
     }
 }
 
-
-
 /// A view of a color parameter where the end color is made up from an addition (or subtraction) of
 /// simpler component colors.
 ///
 /// RGB, RGBW, RGBQ, CMY and others are typical examples of views supported by this structure.
-/// 
+///
 /// This view does not have to actually correspond to the one used internally by the fixture. A simple
 /// or complex conversion will take place if needed. This allows the user, for example, to set the
 /// colors of an RGBAW fixture with an RGB view. The view itself is fixture-agnostic, while the conversion
@@ -120,8 +122,7 @@ pub struct ColorComponentView {
     pub name: String,
 }
 
-impl ParameterView for ColorComponentView {
-}
+impl ParameterView for ColorComponentView {}
 
 pub fn rgb() -> ColorComponentView {
     ColorComponentView {
@@ -195,8 +196,7 @@ pub struct ColorModelView {
     pub name: String,
 }
 
-impl ParameterView for ColorModelView {
-}
+impl ParameterView for ColorModelView {}
 
 pub fn hsv() -> ColorModelView {
     ColorModelView {

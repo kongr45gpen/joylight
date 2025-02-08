@@ -1,11 +1,11 @@
 //! Parameter value containers
 
-use std::fmt::Debug;
-use serde::{de, Deserialize, Serialize};
 use crate::colors::RGBTuple;
+use serde::{de, Deserialize, Serialize};
+use std::fmt::Debug;
 
 /// A color based on addition or subtraction of hard-coded color components.
-/// 
+///
 /// This is used for fixtures that represent their colour as a combination of light sources or filters.
 /// This includes RGB, CMY and other combinations.
 /// A representation on this struct should correspond 1-1 with the fixture's representation.
@@ -21,9 +21,9 @@ pub struct ColorBasedOnComponents {
 }
 
 /// The current parameter value of a fixture.
-/// 
+///
 /// This enum is used as a value container and does not always describe what this value is connected to.
-/// 
+///
 /// It should correspond 1-1 to the fixture's parameter.
 #[derive(Clone, Debug)]
 pub enum ParameterValue {
@@ -33,4 +33,3 @@ pub enum ParameterValue {
     Integer(Vec<i64>),
     ColorBasedOnComponents(ColorBasedOnComponents),
 }
-

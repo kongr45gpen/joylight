@@ -2,16 +2,16 @@ mod colors;
 mod fixture;
 mod parameter;
 
-use std::collections::BTreeMap;
-use std::boxed::Box;
 use std::any::TypeId;
+use std::boxed::Box;
+use std::collections::BTreeMap;
 
-use fixture::Fixture;
 use fixture::fixture_template::FixtureTemplate;
-use parameter::parameter_value::ParameterValue;
-use parameter::parameter_type::ParameterType;
-use parameter::parameter_view;
+use fixture::Fixture;
 use parameter::parameter_dmx;
+use parameter::parameter_type::ParameterType;
+use parameter::parameter_value::ParameterValue;
+use parameter::parameter_view;
 use serde_json::json;
 use std::{thread, time};
 
@@ -28,10 +28,10 @@ fn main() {
             input_min: 0.0,
             input_max: 100.0,
             size: 1,
-            endianness: parameter_dmx::Endianness::Big
+            endianness: parameter_dmx::Endianness::Big,
         }),
         ParameterValue::Number(vec![0.0]),
-        None
+        None,
     );
 
     let color_rgb = ParameterType::new(
@@ -42,10 +42,10 @@ fn main() {
             input_min: 0.0,
             input_max: 255.0,
             size: 1,
-            endianness: parameter_dmx::Endianness::Big
+            endianness: parameter_dmx::Endianness::Big,
         }),
         ParameterValue::Number(vec![255.0, 255.0, 255.0]),
-        None
+        None,
     );
 
     let three_fixture_template = FixtureTemplate {
@@ -54,16 +54,24 @@ fn main() {
             brightness.clone(),
             brightness.clone(),
             color_rgb.clone(),
-            color_rgb.clone()
-        ]
+            color_rgb.clone(),
+        ],
     };
 
     let mut three_fixture = Fixture::new("BabisOFlou", three_fixture_template.clone());
 
     println!("{:#?}", three_fixture);
 
-    three_fixture_template.parameters[0].view.to_value(vec![parameter_view::InputType::F64(50.0)], &mut three_fixture.parameters[0]);
-    println!("{:?}", three_fixture_template.parameters[0].view.from_value(&three_fixture.parameters[0]));
+    three_fixture_template.parameters[0].view.to_value(
+        vec![parameter_view::InputType::F64(50.0)],
+        &mut three_fixture.parameters[0],
+    );
+    println!(
+        "{:?}",
+        three_fixture_template.parameters[0]
+            .view
+            .from_value(&three_fixture.parameters[0])
+    );
 
     // let mut fixture1 = fixture::Fixture {
     //     name: "fixture1".to_string(),
@@ -169,7 +177,6 @@ fn main() {
     // });
 
     // println!("{:#?}", templates);
-
 
     // let context = zmq::Context::new();
     // let server = context.socket(zmq::REP).unwrap();

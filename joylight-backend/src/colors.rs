@@ -10,7 +10,10 @@ pub struct RGBTuple(pub [u8; 3]);
 
 impl fmt::Debug for RGBTuple {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!("RGB [{}, {}, {}]", self.0[0], self.0[1], self.0[2]))
+        f.write_fmt(format_args!(
+            "RGB [{}, {}, {}]",
+            self.0[0], self.0[1], self.0[2]
+        ))
     }
 }
 

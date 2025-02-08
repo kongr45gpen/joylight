@@ -1,9 +1,11 @@
 //! Generic descriptions of parameters corresponding to a fixture
 
-use std::fmt::Debug;
+use crate::parameter::{
+    parameter_dmx::ParameterEncoder, parameter_value::ParameterValue, parameter_view::ParameterView,
+};
 use serde::{Deserialize, Serialize};
-use std::any::{TypeId, Any};
-use crate::parameter::{parameter_dmx::ParameterEncoder, parameter_value::ParameterValue, parameter_view::ParameterView};
+use std::any::{Any, TypeId};
+use std::fmt::Debug;
 
 /// Representation of a Parameter Type of a fixture.
 ///
@@ -26,19 +28,26 @@ pub struct ParameterType {
     /// This basically also defines the type of the value itself.
     pub default_value: ParameterValue,
     /// Optional text comments/description shown to the user
-    pub comments: Option<String>
+    pub comments: Option<String>,
 }
 
 impl ParameterType {
     /// Create a new parameter type
-    pub fn new(alias: &str, display_name: &str, view: Box<dyn ParameterView>, encoding: Box<dyn ParameterEncoder>, default_value: ParameterValue, comments: Option<String>) -> Self {
+    pub fn new(
+        alias: &str,
+        display_name: &str,
+        view: Box<dyn ParameterView>,
+        encoding: Box<dyn ParameterEncoder>,
+        default_value: ParameterValue,
+        comments: Option<String>,
+    ) -> Self {
         Self {
             alias: alias.to_string(),
             display_name: display_name.to_string(),
             view: view,
             encoding: encoding,
             default_value: default_value,
-            comments: comments
+            comments: comments,
         }
     }
 
@@ -57,7 +66,7 @@ impl Clone for ParameterType {
             view: dyn_clone::clone_box(&*self.view),
             encoding: dyn_clone::clone_box(&*self.encoding),
             default_value: self.default_value.clone(),
-            comments: self.comments.clone()
+            comments: self.comments.clone(),
         }
     }
 }

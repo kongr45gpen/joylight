@@ -1,15 +1,25 @@
 //! Encoding descriptions for DMX parameters
 
-use std::{fmt::Debug, ops::{Sub, Mul}, cmp};
-use serde::{Deserialize, Serialize};
 use dyn_clone::DynClone;
+use serde::{Deserialize, Serialize};
+use std::{
+    cmp,
+    fmt::Debug,
+    ops::{Mul, Sub},
+};
 
 use crate::parameter::parameter_value::ParameterValue;
 
 /// Maps a number from an input to an output range
-/// 
+///
 /// TODO: Maybe it's just easier to split this into ints and floats
-fn map_number<T: Sub<Output=T> + PartialOrd + Into<f64> + Mul<f64, Output=f64> + Clone>(input_min: T, input_max: T, output_min: u64, output_max: u64, input: T) -> u64 {
+fn map_number<T: Sub<Output = T> + PartialOrd + Into<f64> + Mul<f64, Output = f64> + Clone>(
+    input_min: T,
+    input_max: T,
+    output_min: u64,
+    output_max: u64,
+    input: T,
+) -> u64 {
     if input <= input_min {
         return output_min;
     } else if input >= input_max {
@@ -86,22 +96,22 @@ impl ParameterEncoder for DMXMappingTransformer {
                     for j in 0..stride {
                         result[i * stride + j] = bytes[stride - j - 1];
                     }
-                },
+                }
                 Endianness::Little => {
                     for j in 0..stride {
                         result[i * stride + j] = bytes[j];
                     }
-                },
+                }
                 Endianness::BigCollated => {
                     for j in 0..stride {
                         result[i + j * count] = bytes[stride - j - 1];
                     }
-                },
+                }
                 Endianness::LittleCollated => {
                     for j in 0..stride {
                         result[i + j * count] = bytes[j];
                     }
-                },
+                }
             }
         }
 
@@ -119,7 +129,7 @@ mod tests {
             input_min: 0.0,
             input_max: 100.0,
             size: 1,
-            endianness: Endianness::Big
+            endianness: Endianness::Big,
         };
 
         {
@@ -143,7 +153,7 @@ mod tests {
             input_min: 0.0,
             input_max: 100.0,
             size: 2,
-            endianness: Endianness::Big
+            endianness: Endianness::Big,
         };
 
         let value = ParameterValue::Number(vec![55.0, 99.611]);
@@ -158,7 +168,7 @@ mod tests {
             input_min: 0.0,
             input_max: 100.0,
             size: 2,
-            endianness: Endianness::Little
+            endianness: Endianness::Little,
         };
 
         let value = ParameterValue::Number(vec![55.0, 99.611]);
@@ -173,7 +183,7 @@ mod tests {
             input_min: 0.0,
             input_max: 100.0,
             size: 2,
-            endianness: Endianness::BigCollated
+            endianness: Endianness::BigCollated,
         };
 
         let value = ParameterValue::Number(vec![55.0, 99.611, 98.045]);
@@ -188,7 +198,7 @@ mod tests {
             input_min: 0.0,
             input_max: 100.0,
             size: 2,
-            endianness: Endianness::LittleCollated
+            endianness: Endianness::LittleCollated,
         };
 
         let value = ParameterValue::Number(vec![55.0, 99.611, 98.045]);
@@ -203,13 +213,16 @@ mod tests {
             input_min: 0.0,
             input_max: 140.0,
             size: 3,
-            endianness: Endianness::Little
+            endianness: Endianness::Little,
         };
 
         let value = ParameterValue::Number(vec![55.0, 57.0, 139.0]);
         let result = transformer.encode(value).unwrap();
 
-        assert_eq!(result, vec![0x49, 0x92, 0x64, 0x83, 0x3A, 0x68, 0xE2, 0x2B, 0xFE]);
+        assert_eq!(
+            result,
+            vec![0x49, 0x92, 0x64, 0x83, 0x3A, 0x68, 0xE2, 0x2B, 0xFE]
+        );
     }
 
     #[test]
@@ -218,7 +231,7 @@ mod tests {
             input_min: 0.0,
             input_max: 100.0,
             size: 1,
-            endianness: Endianness::Big
+            endianness: Endianness::Big,
         };
 
         {
@@ -242,7 +255,7 @@ mod tests {
             input_min: 100.0,
             input_max: 0.0,
             size: 1,
-            endianness: Endianness::Big
+            endianness: Endianness::Big,
         };
 
         let _ = transformer1.encode(ParameterValue::Number(vec![55.0]));
@@ -251,7 +264,7 @@ mod tests {
             input_min: 100.0,
             input_max: 100.0,
             size: 1,
-            endianness: Endianness::Big
+            endianness: Endianness::Big,
         };
 
         let _ = transformer2.encode(ParameterValue::Number(vec![55.0]));
@@ -260,7 +273,7 @@ mod tests {
             input_min: 100.0,
             input_max: 100.0,
             size: 0,
-            endianness: Endianness::Big
+            endianness: Endianness::Big,
         };
 
         let _ = transformer3.encode(ParameterValue::Number(vec![0.0]));
