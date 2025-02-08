@@ -1,7 +1,9 @@
+//! Generic descriptions of parameters corresponding to a fixture
+
 use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use std::any::{TypeId, Any};
-use crate::{parameter_dmx::ParameterEncoder, parameter_value::ParameterValue, parameter_view::ParameterView};
+use crate::parameter::{parameter_dmx::ParameterEncoder, parameter_value::ParameterValue, parameter_view::ParameterView};
 
 /// Representation of a Parameter Type of a fixture.
 ///
@@ -28,7 +30,7 @@ pub struct ParameterType {
 }
 
 impl ParameterType {
-    /// Create a new parameter
+    /// Create a new parameter type
     pub fn new(alias: &str, display_name: &str, view: Box<dyn ParameterView>, encoding: Box<dyn ParameterEncoder>, default_value: ParameterValue, comments: Option<String>) -> Self {
         Self {
             alias: alias.to_string(),
@@ -40,7 +42,7 @@ impl ParameterType {
         }
     }
 
-    /// Instantiate the default parameter value from a parameter
+    /// Instantiate the default parameter value from a parameter type
     pub fn new_value(&self) -> ParameterValue {
         // return dyn_clone::clone_box(&*self.default_value);
         return self.default_value.clone();

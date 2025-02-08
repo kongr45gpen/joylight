@@ -1,20 +1,25 @@
-use std::collections::BTreeMap;
-use std::boxed::Box;
+//! Lighting fixtures
+
+pub mod fixture_template;
+
 use std::fmt::Debug;
-use crate::fixture_template::FixtureTemplate;
-use crate::parameter_type;
-use crate::parameter_value;
-use crate::parameter_value::ParameterValue;
+use crate::fixture::fixture_template::FixtureTemplate;
+use crate::parameter::parameter_value::ParameterValue;
 use serde::{Deserialize, Serialize};
 
+/// An instance of a fixture with multiple parameter values.
+/// 
+/// A show may have multiple fixture instances of the same [FixtureTemplate].
 #[derive(Debug)]
 pub struct Fixture {
     pub name: String,
     pub template: FixtureTemplate,
+    /// A vector of parameters, each associated to the [ParameterType] of the [FixtureTemplate]
     pub parameters: Vec<ParameterValue>
 }
 
 impl Fixture {
+    /// Create a new fixture based on a template, setting parameter values to their defaults
     pub fn new(name: &str, template: FixtureTemplate) -> Fixture {
         let mut parameters = Vec::with_capacity(template.parameters.len());
 

@@ -2,9 +2,10 @@
 
 use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
-use crate::{colors::{ColorModel, RGBTuple}, parameter_value::{ParameterValue}};
+use crate::{colors::{ColorModel, RGBTuple}, parameter::parameter_value::ParameterValue};
 use dyn_clone::DynClone;
 
+/// Protocol input value that may correspond to a view.
 #[derive(Clone, Debug)]
 pub enum InputType {
     F64(f64),
@@ -12,6 +13,11 @@ pub enum InputType {
     String(String),
 }
 
+/// A parameter view represents the user-editable representation of a parameter's type and value.
+/// 
+/// A parameter could be associated with different types of views, but only one can be active at any time.
+/// 
+/// It can be reliably converted to and from the corresponding parameter value
 pub trait ParameterView: DynClone + Debug {
     fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(),()> {
         Err(())
@@ -22,6 +28,7 @@ pub trait ParameterView: DynClone + Debug {
     }
 }
 
+/// A single scalar slider
 #[derive(Clone, Debug)]
 pub struct SliderView {
     pub min: f64,
@@ -55,6 +62,7 @@ impl ParameterView for SliderView {
     }
 }
 
+/// A "joystick"-type view that allows rotating a fixture around two axes with the same unit
 #[derive(Clone, Debug)]
 pub struct Rotation2DView {
     pub pan_min: f64,
@@ -93,6 +101,11 @@ pub fn circle() -> SliderView {
 /// simpler component colors.
 ///
 /// RGB, RGBW, RGBQ, CMY and others are typical examples of views supported by this structure.
+/// 
+/// This view does not have to actually correspond to the one used internally by the fixture. A simple
+/// or complex conversion will take place if needed. This allows the user, for example, to set the
+/// colors of an RGBAW fixture with an RGB view. The view itself is fixture-agnostic, while the conversion
+/// functions and the parameter value are tied to the fixture.
 #[derive(Clone, Debug)]
 pub struct ColorComponentView {
     /// A list of RGB components that are included in the view.
@@ -103,7 +116,7 @@ pub struct ColorComponentView {
     /// Whether the view includes a Quality slider for balance control when the output components
     /// are more than the input components
     pub has_quality: bool,
-    /// A human-readable description of the view space
+    /// A human-readable description of the color space
     pub name: String,
 }
 
@@ -172,7 +185,8 @@ pub fn rgb() -> ColorComponentView {
 //     name: "CMY".to_string(),
 // };
 
-/// A more generic view supporting more generic [ColorModel]s
+/// A more generic view supporting more generic [ColorModel]s that cannot be expressed
+/// as sums of components
 #[derive(Clone, Debug)]
 pub struct ColorModelView {
     /// The color model that this view represents
@@ -184,8 +198,18 @@ pub struct ColorModelView {
 impl ParameterView for ColorModelView {
 }
 
-// pub static HSV: ColorModelView = ColorModelView {
-//     model: ColorModel::HSV,
-//     has_quality: false,
-//     name: "HSV".to_string(),
-// };
+pub fn hsv() -> ColorModelView {
+    ColorModelView {
+        model: ColorModel::HSV,
+        has_quality: false,
+        name: "HSV".to_string(),
+    }
+}
+
+pub fn hsl() -> ColorModelView {
+    ColorModelView {
+        model: ColorModel::HSL,
+        has_quality: false,
+        name: "HSL".to_string(),
+    }
+}

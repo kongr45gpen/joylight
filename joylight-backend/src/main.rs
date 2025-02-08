@@ -1,24 +1,21 @@
 mod colors;
 mod fixture;
-mod parameter_type;
-mod parameter_value;
-mod parameter_dmx;
-mod parameter_view;
-mod fixture_template;
+mod parameter;
 
 use std::collections::BTreeMap;
 use std::boxed::Box;
 use std::any::TypeId;
 
 use fixture::Fixture;
-use fixture_template::FixtureTemplate;
-use parameter_value::ParameterValue;
+use fixture::fixture_template::FixtureTemplate;
+use parameter::parameter_value::ParameterValue;
+use parameter::parameter_type::ParameterType;
+use parameter::parameter_view;
+use parameter::parameter_dmx;
 use serde_json::json;
 use std::{thread, time};
 
 use zmq;
-
-use crate::parameter_type::ParameterType;
 
 fn main() {
     println!("Hello, world!");

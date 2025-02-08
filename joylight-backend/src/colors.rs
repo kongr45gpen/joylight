@@ -1,3 +1,5 @@
+//! Color management utilities
+
 use std::fmt;
 
 /// A simple representation of an RGB color

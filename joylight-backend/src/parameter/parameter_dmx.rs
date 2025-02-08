@@ -3,11 +3,12 @@
 use std::{fmt::Debug, ops::{Sub, Mul}, cmp};
 use serde::{Deserialize, Serialize};
 use dyn_clone::DynClone;
-use std::mem::transmute;
 
-use crate::parameter_value::ParameterValue;
+use crate::parameter::parameter_value::ParameterValue;
 
-// TODO: Maybe it's just easier to split this into ints and floats
+/// Maps a number from an input to an output range
+/// 
+/// TODO: Maybe it's just easier to split this into ints and floats
 fn map_number<T: Sub<Output=T> + PartialOrd + Into<f64> + Mul<f64, Output=f64> + Clone>(input_min: T, input_max: T, output_min: u64, output_max: u64, input: T) -> u64 {
     if input <= input_min {
         return output_min;
@@ -15,7 +16,6 @@ fn map_number<T: Sub<Output=T> + PartialOrd + Into<f64> + Mul<f64, Output=f64> +
         return output_max;
     }
 
-    // let input_range: f64 = (input_max - input_min).into();
     let input_range: f64 = input_max.into() - input_min.clone().into();
     let output_range = cmp::max(output_max.checked_sub(output_min).unwrap_or(1u64), 1u64) as f64;
 
@@ -25,23 +25,25 @@ fn map_number<T: Sub<Output=T> + PartialOrd + Into<f64> + Mul<f64, Output=f64> +
     return output_min + (input_diff * factor).round() as u64;
 }
 
+/// A [ParameterEncoder] transforms a [ParameterValue] into something that can be read by an external interface,
+/// such as DMX, MQTT or others.
 pub trait ParameterEncoder: DynClone + Debug {
     fn encode(&self, value: ParameterValue) -> Result<Vec<u8>, ()>;
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Endianness {
+    /// DMX big-endian `[coarse, fine]`
     Big,
+    /// DMX little-endian `[fine, coarse]`
     Little,
+    /// Collated big-endian (combines parameters, e.g. `[coarse1, coarse2, fine1, fine2]`)
     BigCollated,
+    /// Collated little-endian (combines parameters, e.g. `[fine1, fine2, coarse1, coarse2]`)
     LittleCollated,
 }
 
 /// A transformer from a [crate::parameter_value::Number] to a DMX value
-///
-/// * `N`: The number of input values
-/// 
-/// TODO: Maybe make N not a template, since not many things are templates anyway...
 #[derive(Clone, Debug)]
 pub struct DMXMappingTransformer {
     /// This input value corresponds to the value `0` in DMX.
@@ -125,7 +127,6 @@ mod tests {
             let result = transformer.encode(single_value).unwrap();
 
             assert_eq!(result, vec![252]);
-            
         }
 
         {
@@ -133,7 +134,6 @@ mod tests {
             let result = transformer.encode(multiple_value).unwrap();
 
             assert_eq!(result, vec![0, 115, 255]);
-
         }
     }
 
@@ -210,5 +210,59 @@ mod tests {
         let result = transformer.encode(value).unwrap();
 
         assert_eq!(result, vec![0x49, 0x92, 0x64, 0x83, 0x3A, 0x68, 0xE2, 0x2B, 0xFE]);
+    }
+
+    #[test]
+    fn transformer_with_out_of_bounds_inputs() {
+        let transformer = DMXMappingTransformer {
+            input_min: 0.0,
+            input_max: 100.0,
+            size: 1,
+            endianness: Endianness::Big
+        };
+
+        {
+            let single_value = ParameterValue::Number(vec![-1.0]);
+            let result = transformer.encode(single_value).unwrap();
+
+            assert_eq!(result, vec![0]);
+        }
+
+        {
+            let single_value = ParameterValue::Number(vec![101.0]);
+            let result = transformer.encode(single_value).unwrap();
+
+            assert_eq!(result, vec![255]);
+        }
+    }
+
+    #[test]
+    fn incorrectly_defined_transformers_dont_panic() {
+        let transformer1 = DMXMappingTransformer {
+            input_min: 100.0,
+            input_max: 0.0,
+            size: 1,
+            endianness: Endianness::Big
+        };
+
+        let _ = transformer1.encode(ParameterValue::Number(vec![55.0]));
+
+        let transformer2 = DMXMappingTransformer {
+            input_min: 100.0,
+            input_max: 100.0,
+            size: 1,
+            endianness: Endianness::Big
+        };
+
+        let _ = transformer2.encode(ParameterValue::Number(vec![55.0]));
+
+        let transformer3 = DMXMappingTransformer {
+            input_min: 100.0,
+            input_max: 100.0,
+            size: 0,
+            endianness: Endianness::Big
+        };
+
+        let _ = transformer3.encode(ParameterValue::Number(vec![0.0]));
     }
 }
