@@ -2,11 +2,16 @@
 name = "joylight-backend"
 version = "0.1.0"
 edition = "2021"
+default-run = "joylight-backend"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 dyn-clone = "1.0.18"
+gtk4 = "0.9.5"
+
+ndarray = "0.16.1"
+ndarray-linalg = { version = "0.17.0",  features = ["openblas-system"] }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 zmq = "0.10.0"
@@ -16,3 +21,7 @@ rustdoc-args = [
     "--html-in-header",
     "katex.html",
 ]
+
+[[bin]]
+name="demo"
+path="src/demo.rs"

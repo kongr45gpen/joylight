@@ -1,6 +1,7 @@
 //! A view of a parameter's value, designed to be readable and editable by the user
 
 use crate::{
+    colors,
     colors::{ColorModel, RGBTuple},
     parameter::parameter_value::ParameterValue,
 };
@@ -127,9 +128,9 @@ impl ParameterView for ColorComponentView {}
 pub fn rgb() -> ColorComponentView {
     ColorComponentView {
         components: vec![
-            RGBTuple([255, 0, 0]),
-            RGBTuple([0, 255, 0]),
-            RGBTuple([0, 0, 255]),
+            colors::red(),
+            colors::green(),
+            colors::blue(),
         ],
         subtractive: false,
         has_quality: false,
