@@ -11,7 +11,7 @@ use std::fmt::Debug;
 
 /// Protocol input value that may correspond to a view.
 #[derive(Clone, Debug)]
-pub enum InputType {
+pub enum ViewValue {
     F64(f64),
     I64(i64),
     String(String),
@@ -23,11 +23,11 @@ pub enum InputType {
 ///
 /// It can be reliably converted to and from the corresponding parameter value
 pub trait ParameterView: DynClone + Debug {
-    fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(), ()> {
+    fn to_value(&self, input: Vec<ViewValue>, value: &mut ParameterValue) -> Result<(), ()> {
         Err(())
     }
 
-    fn from_value(&self, value: &ParameterValue) -> Result<Vec<InputType>, ()> {
+    fn from_value(&self, value: &ParameterValue) -> Result<Vec<ViewValue>, ()> {
         Err(())
     }
 }
@@ -42,7 +42,7 @@ pub struct SliderView {
 }
 
 impl ParameterView for SliderView {
-    fn from_value(&self, value: &ParameterValue) -> Result<Vec<InputType>, ()> {
+    fn from_value(&self, value: &ParameterValue) -> Result<Vec<ViewValue>, ()> {
         let ParameterValue::Number(numbers) = value else {
             return Err(());
         };
@@ -53,12 +53,12 @@ impl ParameterView for SliderView {
             .ok_or(())
     }
 
-    fn to_value(&self, input: Vec<InputType>, value: &mut ParameterValue) -> Result<(), ()> {
+    fn to_value(&self, input: Vec<ViewValue>, value: &mut ParameterValue) -> Result<(), ()> {
         let ParameterValue::Number(numbers) = value else {
             return Err(());
         };
 
-        if let Some(InputType::F64(number)) = input.first() {
+        if let Some(ViewValue::F64(number)) = input.first() {
             numbers[0] = *number;
             Ok(())
         } else {
