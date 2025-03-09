@@ -1,18 +1,22 @@
 mod colors;
 mod fixture;
 mod parameter;
+mod effects;
 
 use std::any::TypeId;
 use std::boxed::Box;
 use std::collections::BTreeMap;
 
+use effects::{io::{NodeDataPacket, NodeDataset}, node::NodeParameterValue};
 use fixture::fixture_template::FixtureTemplate;
 use fixture::Fixture;
 use parameter::parameter_dmx;
 use parameter::parameter_type::ParameterType;
 use parameter::parameter_value::ParameterValue;
 use parameter::parameter_view;
+use parameter::parameter_view::ViewValue;
 use serde_json::json;
+use smallvec::smallvec;
 use std::{thread, time};
 
 use zmq;
@@ -60,10 +64,10 @@ fn main() {
 
     let mut three_fixture = Fixture::new("BabisOFlou", three_fixture_template.clone());
 
-    println!("{:#?}", three_fixture);
+    println!("{:?}", three_fixture);
 
     three_fixture_template.parameters[0].view.to_value(
-        vec![parameter_view::InputType::F64(50.0)],
+        vec![parameter_view::ViewValue::F64(50.0)],
         &mut three_fixture.parameters[0],
     );
     println!(
@@ -199,4 +203,36 @@ fn main() {
 
     //     server.send(json_str.as_str(), 0).unwrap();
     // }
+
+    let input1: NodeDataPacket = NodeDataPacket(smallvec![ViewValue::F64(100.0)]); 
+    let input2 = NodeDataPacket(smallvec![ViewValue::F64(100.0), ViewValue::I64(1000), ViewValue::F64(2000.0)]); 
+
+
+    {
+        println!("Node processing test 1");
+        let input = NodeDataset(smallvec![Some(input1.clone())]);
+        println!(" Input:  {:?}", input);
+        
+        let defn = effects::nodes::math::log();
+        let node = defn.build("log");
+
+        // node.deprocessor(&input, smallvec![]);
+        let null_parameters = smallvec![];
+        let output = (node.definition.processor)(&input, &null_parameters);
+        println!(" Output: {:?}", output);
+    }
+
+    {
+        println!("Node processing test 2");
+        let input = NodeDataset(smallvec![Some(input1), Some(input2)]);
+        println!(" Input:  {:?}", input);
+        
+        let defn = effects::nodes::math::log();
+        let node = defn.build("log");
+
+        // node.deprocessor(&input, smallvec![]);
+        let null_parameters = smallvec![];
+        let output = (node.definition.processor)(&input, &null_parameters);
+        println!(" Output: {:?}", output);
+    }
 }

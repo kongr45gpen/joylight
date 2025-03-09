@@ -49,7 +49,7 @@ impl ParameterView for SliderView {
 
         numbers
             .first()
-            .map(|number| vec![InputType::F64(*number)])
+            .map(|number| vec![ViewValue::F64(*number)])
             .ok_or(())
     }
 
