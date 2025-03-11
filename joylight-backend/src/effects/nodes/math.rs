@@ -1,8 +1,9 @@
 use crate::effects::io::{NodeDataPacket, NodeDataset};
 use crate::effects::node::{EffectNodeDefinition, NodeType};
 use crate::parameter::parameter_view::ViewValue;
-use smallvec::SmallVec;
+use smallvec::{smallvec, SmallVec};
 use std::cell::OnceCell;
+use rand::Rng;
 
 pub fn log() -> EffectNodeDefinition {
     EffectNodeDefinition {
@@ -20,6 +21,25 @@ pub fn log() -> EffectNodeDefinition {
                         .collect(),
                 ))
             })
+        },
+    }
+}
+
+pub fn random() -> EffectNodeDefinition {
+    EffectNodeDefinition {
+        name: "Random".to_string(),
+        help: Some
+            ("Generate random numbers".to_string()),
+        parameters: vec![],
+        node_type: NodeType::Processing,
+        processor: |_, _| {
+            Ok(NodeDataset::new_single(
+                NodeDataPacket(
+                    smallvec![
+                        ViewValue::F64(rand::rng().random_range(0.0..1.0)),
+                    ]
+                )
+            ))
         },
     }
 }

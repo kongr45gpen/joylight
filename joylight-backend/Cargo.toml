@@ -11,6 +11,7 @@ dyn-clone = "1.0.18"
 gtk4 = "0.9.5"
 ndarray = "0.16.1"
 ndarray-linalg = { version = "0.17.0",  features = ["openblas-system"] }
+rand = "0.9.0"
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 smallvec = "1.14.0"

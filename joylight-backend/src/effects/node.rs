@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 use std::sync::Arc;
 use smallvec::SmallVec;
+use std::sync::RwLock;
+use std::fmt;
 
 use super::io::NodeDataPacket;
 use super::io::NodeDataset;
@@ -42,23 +44,36 @@ pub struct EffectNodeDefinition {
     pub processor: NodeProcessFn,
 }
 
+#[derive(Debug)]
+pub(super) enum Mark {
+    Unmarked,
+    Temporary,
+    Permanent,
+}
+
 /// An instantiation of a node in the effect graph.
 /// 
 /// It may be connected to other nodes as inputs or outputs. It is linked to one [EffectNodeDefinition].
-#[derive(Debug)]
 pub struct EffectNode<'a> {
     pub label: String,
     pub definition: &'a EffectNodeDefinition,
     pub parameters: SmallVec<[NodeParameterValue; 6]>,
     /// Each input of the node has a different semantic definition and may be left unconnected.
-    pub inputs: SmallVec<[Option<Arc<EffectNode<'a>>>; 3]>,
+    pub inputs: SmallVec<[Option<Arc<RwLock<EffectNode<'a>>>>; 3]>,
     /// Each output of the node may be connected to multiple other nodes.
     /// 
     /// Here, the outer array enumerates each semantically independent output, and the inner array
     /// contains all the connections of this output.
-    pub outputs: SmallVec<[SmallVec<[Arc<EffectNode<'a>>; 3]>; 3]>,
+    pub outputs: SmallVec<[SmallVec<[Arc<RwLock<EffectNode<'a>>>; 3]>; 3]>,
     pub position: (f64, f64),
     pub current_value: NodeDataset,
+    pub mark: Mark,
+}
+
+impl<'a> fmt::Debug for EffectNode<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Node \"{}\" [{}] = {:?}", self.label, self.definition.name, self.current_value)
+    }
 }
 
 impl EffectNodeDefinition {
@@ -71,6 +86,7 @@ impl EffectNodeDefinition {
             outputs: SmallVec::new(),
             position: (0.0, 0.0),
             current_value: NodeDataset(SmallVec::new()),
+            mark: Mark::Unmarked,
         }
     }
 }

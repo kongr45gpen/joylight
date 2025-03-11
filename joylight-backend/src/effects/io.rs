@@ -56,4 +56,8 @@ impl NodeDataset {
 
         Ok(NodeDataset(result))
     }
+
+    pub fn new_single(input: NodeDataPacket) -> Self {
+        NodeDataset(SmallVec::from_vec(vec![Some(input)]))
+    }
 }

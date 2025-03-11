@@ -235,4 +235,30 @@ fn main() {
         let output = (node.definition.processor)(&input, &null_parameters);
         println!(" Output: {:?}", output);
     }
+
+    {
+        println!("Node processing test 3");
+        let random = effects::nodes::math::random();
+        let log = effects::nodes::math::log();
+
+        // let node1 = random.build("random1");
+        // let node2 = log.build("log1");
+        // let node3 = random.build("random2");
+        // let node4 = log.build("log2");
+
+        let mut graph = effects::graph::EffectGraph::new();
+        let random1 = graph.add_node(random.build("random1"));
+        let log1 = graph.add_node(log.build("log1"));
+        let random2 = graph.add_node(random.build("random2"));
+        let log2 = graph.add_node(log.build("log2"));
+
+        random1.write().unwrap().outputs.push(smallvec![log1.clone()]);
+        log1.write().unwrap().inputs.push(Some(random1.clone()));
+        log2.write().unwrap().outputs.push(smallvec![log1.clone()]);
+        random2.write().unwrap().outputs.push(smallvec![log2.clone()]);
+        log2.write().unwrap().inputs.push(Some(random2.clone()));
+        log1.write().unwrap().inputs.push(Some(log2.clone()));
+
+        graph.process();
+    }
 }
