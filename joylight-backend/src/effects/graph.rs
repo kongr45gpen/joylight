@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use anyhow::Context;
 use smallvec::smallvec;
 use smallvec::SmallVec;
 use zmq::Error;
@@ -133,8 +134,10 @@ impl<'a> EffectGraph<'a> {
 
             let input_dataset = NodeDataset{ packets: input };
 
-            let output = (node.definition.processor)(&input_dataset, &null_parameters, node.outputs.len());
+            let output = (node.definition.processor)(&input_dataset, &null_parameters, node.outputs.len())
+                .with_context(|| format!("Error processing node: {}", node.label));
             println!(" Output: {:?}", output);
+            
             node.current_value = output.unwrap();
         }
     }

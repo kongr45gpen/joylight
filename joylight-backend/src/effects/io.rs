@@ -1,5 +1,6 @@
 use smallvec::SmallVec;
 use std::fmt::Debug;
+use anyhow::{anyhow, Context, Result};
 
 use crate::parameter::parameter_view::{ViewValue, ViewValuePacket};
 
@@ -12,12 +13,12 @@ pub struct NodeDataset {
 
 /// Most node definitions will work on numbers. This function makes sure that the input data is in a floating-point format
 /// for consistent processing.
-pub fn packet_to_f64(packet: &ViewValuePacket) -> Result<SmallVec<[f64; 6]>, ()> {
+pub fn packet_to_f64(packet: &ViewValuePacket) -> Result<SmallVec<[f64; 6]>> {
     packet.iter()
         .map(|value| match value {
             ViewValue::F64(f) => Ok(*f),
             ViewValue::I64(i) => Ok(*i as f64),
-            ViewValue::String(_) => Err(()),
+            ViewValue::String(_) => Err(anyhow!("String input to block that expects numbers")),
         })
         .collect()
 }
@@ -27,11 +28,11 @@ impl NodeDataset {
     /// 
     /// This is useful, for example, to make sure that a node receives a specific number of
     /// inputs as required, before any processing.
-    pub fn check_count(&self, count: usize) -> Result<&Self, ()> {
+    pub fn check_count(&self, count: usize) -> Result<&Self> {
         if self.packets.len() == count {
             Ok(self)
         } else {
-            Err(())
+            Err(anyhow!("Expected {} inputs, got {}", count, self.packets.len()))
         }
     }
 
@@ -39,13 +40,13 @@ impl NodeDataset {
     /// 
     /// This is useful for generic nodes that will perform the same operation on an arbitrary number of inputs,
     /// producing the same number of outputs.
-    pub fn map_values(&self, f: impl Fn(&ViewValuePacket) -> Result<ViewValuePacket, ()>) -> Result<NodeDataset, ()> {
+    pub fn map_values(&self, f: impl Fn(&ViewValuePacket) -> Result<ViewValuePacket>) -> Result<NodeDataset> {
         self.packets.iter()
             .map(|packet| match packet {
                 Some(packet) => f(packet).map(|packet| Some(packet)),
                 None => Ok(None),
             })
-            .collect::<Result<_, ()>>()
+            .collect::<Result<_>>()
             .map(|packets| NodeDataset{ packets })
     }
 
@@ -64,9 +65,9 @@ impl NodeDataset {
     }
 
     /// Create a new dataset based on a generator function that may return an error.
-    pub fn try_new_from_generator(n: usize, f: impl Fn() -> Result<ViewValuePacket, ()>) -> Result<Self, ()> {
+    pub fn try_new_from_generator(n: usize, f: impl Fn() -> Result<ViewValuePacket>) -> Result<Self> {
         Ok(NodeDataset {
-            packets: (0..n).map(|_| Some(f()).transpose()).collect::<Result<_, ()>>()?
+            packets: (0..n).map(|_| Some(f()).transpose()).collect::<Result<_>>()?
         })
     }
 }

@@ -7,6 +7,7 @@ default-run = "joylight-backend"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.97"
 dyn-clone = "1.0.18"
 gtk4 = "0.9.5"
 ndarray = "0.16.1"

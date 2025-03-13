@@ -4,10 +4,11 @@ use crate::parameter::parameter_view::{ViewValue, ViewValuePacket};
 use rand::Rng;
 use smallvec::{smallvec, SmallVec};
 use std::cell::OnceCell;
+use anyhow::anyhow;
 
 pub fn log() -> EffectNodeDefinition {
     EffectNodeDefinition {
-        name: "Log".to_string(),
+        name: "Log10".to_string(),
         help: Some("Base 10 logarithm".to_string()),
         parameters: vec![],
         node_type: NodeType::Processing,

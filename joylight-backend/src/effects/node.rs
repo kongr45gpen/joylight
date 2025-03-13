@@ -4,6 +4,7 @@ use smallvec::SmallVec;
 use std::sync::RwLock;
 use std::fmt;
 
+use anyhow::{Context, Result};
 use smallvec::smallvec;
 use super::io::NodeDataset;
 
@@ -38,7 +39,7 @@ pub type NodeParameterSet = SmallVec<[NodeParameterValue; 6]>;
 /// 1. Complete input dataset (with current values)
 /// 2. Input parameter set (with current values)
 /// 3. Recommended number of outputs. Useful e.g. for input blocks, so that the expected number of outputs is produced.
-type NodeProcessFn = fn(&NodeDataset, &NodeParameterSet, usize) -> Result<NodeDataset, ()>;
+type NodeProcessFn = fn(&NodeDataset, &NodeParameterSet, usize) -> Result<NodeDataset>;
 
 /// A definition of a node in the effect graph.
 /// 
