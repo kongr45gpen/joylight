@@ -1,12 +1,12 @@
+use smallvec::SmallVec;
+use std::fmt;
 use std::fmt::Debug;
 use std::sync::Arc;
-use smallvec::SmallVec;
 use std::sync::RwLock;
-use std::fmt;
 
+use super::io::NodeDataset;
 use anyhow::{Context, Result};
 use smallvec::smallvec;
-use super::io::NodeDataset;
 
 #[derive(Debug, Clone)]
 pub enum NodeParameterValue {
@@ -34,15 +34,18 @@ pub struct NodeParameterDefinition {
 pub type NodeParameterSet = SmallVec<[NodeParameterValue; 6]>;
 
 /// The main process function of a node. Takes the input dataset and produces the output dataset.
-/// 
+///
 /// Arguments:
 /// 1. Complete input dataset (with current values)
 /// 2. Input parameter set (with current values)
 /// 3. Recommended number of outputs. Useful e.g. for input blocks, so that the expected number of outputs is produced.
 type NodeProcessFn = fn(&NodeDataset, &NodeParameterSet, usize) -> Result<NodeDataset>;
 
+/// An Arc reference to an effects node
+type NodeRef<'a> = Arc<RwLock<EffectNode<'a>>>;
+
 /// A definition of a node in the effect graph.
-/// 
+///
 /// One definition can be instantiated multiple times in the graph.
 #[derive(Debug)]
 pub struct EffectNodeDefinition {
@@ -61,20 +64,25 @@ pub(super) enum Mark {
     Permanent,
 }
 
+/// Denotes the input of a node, which is another node
+#[derive(Debug)]
+pub struct InputLink<'a> {
+    pub node: NodeRef<'a>,
+    /// Defines which output of the inputting node is connected to this input
+    pub output_id: usize,
+}
+
 /// An instantiation of a node in the effect graph.
-/// 
+///
 /// It may be connected to other nodes as inputs or outputs. It is linked to one [EffectNodeDefinition].
 pub struct EffectNode<'a> {
     pub label: String,
     pub definition: &'a EffectNodeDefinition,
-    pub parameters: SmallVec<[NodeParameterValue; 6]>,
+    pub parameters: NodeParameterSet,
     /// Each input of the node has a different semantic definition and may be left unconnected.
-    pub inputs: SmallVec<[Option<Arc<RwLock<EffectNode<'a>>>>; 3]>,
-    /// Each output of the node may be connected to multiple other nodes.
-    /// 
-    /// Here, the outer array enumerates each semantically independent output, and the inner array
-    /// contains all the connections of this output.
-    pub outputs: SmallVec<[SmallVec<[Arc<RwLock<EffectNode<'a>>>; 3]>; 3]>,
+    pub inputs: SmallVec<[Option<InputLink<'a>>; 3]>,
+    /// The maximum number of distinct outputs provided by this node
+    pub output_count: usize,
     /// The x,y coordinates of the node in the node graph
     pub position: (f64, f64),
     /// The output value of the node, if calculated with [EffectNode::processor]
@@ -85,21 +93,40 @@ pub struct EffectNode<'a> {
 
 impl<'a> fmt::Debug for EffectNode<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Node \"{}\" [{}] = {:?}", self.label, self.definition.name, self.current_value)
+        write!(
+            f,
+            "Node \"{}\" [{}] = {:?}",
+            self.label, self.definition.name, self.current_value
+        )
     }
 }
 
 impl EffectNodeDefinition {
+    /// Create a new [EffectNode] instance from a definition
     pub fn build(&self, label: &str) -> EffectNode {
         EffectNode {
             label: label.to_string(),
             definition: self,
-            parameters: self.parameters.iter().map(|param| param.default_value.clone()).collect(),
+            parameters: self
+                .parameters
+                .iter()
+                .map(|param| param.default_value.clone())
+                .collect(),
             inputs: SmallVec::new(),
-            outputs: SmallVec::new(),
+            output_count: 0,
             position: (0.0, 0.0),
-            current_value: NodeDataset{ packets: smallvec![] },
+            current_value: NodeDataset {
+                packets: smallvec![],
+            },
             mark: Mark::Unmarked,
         }
     }
+}
+
+/// Connect the `n`th output of `from` to a new input of `to`
+pub fn link<'a>(from: &NodeRef<'a>, to: &NodeRef<'a>, n: usize) {
+    to.write().unwrap().inputs.push(Some(InputLink {
+        node: from.clone(),
+        output_id: n,
+    }));
 }

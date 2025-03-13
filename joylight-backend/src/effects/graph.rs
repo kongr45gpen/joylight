@@ -6,13 +6,17 @@ use std::sync::RwLock;
 use anyhow::Context;
 use smallvec::smallvec;
 use smallvec::SmallVec;
-use zmq::Error;
+use anyhow::{anyhow,Result};
+use log::{debug, info};
 
 use crate::effects::io::NodeDataset;
 use crate::effects::node::EffectNode;
 use crate::effects::node::Mark;
 use crate::effects::node::NodeParameterValue;
 use crate::parameter::parameter_view::ViewValue;
+
+use std::io::Write;
+use std::process::{Command, Stdio};
 
 #[derive(Debug)]
 pub struct EffectGraph<'a> {
@@ -28,6 +32,39 @@ impl<'a> EffectGraph<'a> {
         }
     }
 
+    pub fn graphviz(&self) -> String {
+        let mut graphviz = String::new();
+        graphviz.push_str("digraph G {\n");
+
+        for node in self.nodes.iter() {
+            let node = node.read().unwrap();
+            graphviz.push_str(&format!("  {} [label=\"{}\"];\n", node.label, node.label));
+
+            for input in node.inputs.iter() {
+                for connection in input.iter() {
+                    let connection = connection.node.read().unwrap();
+                    graphviz.push_str(&format!("  {} -> {};\n", node.label, connection.label));
+                }
+            }
+        }
+
+        graphviz.push_str("}\n");
+
+        let mut child = Command::new("graph-easy")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("Failed to execute dot");
+
+        let stdin = child.stdin.as_mut().unwrap();
+        stdin.write_all(graphviz.as_bytes()).unwrap();
+
+        let output = child.wait_with_output().unwrap();
+        println!("{}", String::from_utf8_lossy(&output.stdout));
+
+        graphviz
+    }
+
     pub fn add_node(&mut self, node: EffectNode<'a>) -> Arc<RwLock<EffectNode<'a>>> {
         let new_node = Arc::new(RwLock::new(node));
 
@@ -37,9 +74,9 @@ impl<'a> EffectGraph<'a> {
         new_node
     }
 
-    fn node_topological_sort(&mut self) -> Result<(), ()> {
+    fn node_topological_sort(&mut self) -> Result<()> {
         if self.nodes.is_empty() {
-            return Err(());
+            return Err(anyhow!("Effect graph is empty"));
         }
 
         let mut nodes_sorted = vec![];
@@ -51,7 +88,7 @@ impl<'a> EffectGraph<'a> {
         node_stack.push_back(Visit(self.nodes.first().unwrap().clone(), false));
 
         // Iterative depth-first search to sort the graph topologically
-        // Cormen et al. (2001)
+        // Cormen et al. (2001), see https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
         while !node_stack.is_empty() {
             {
                 let current_node_container = node_stack.pop_back().unwrap();
@@ -66,16 +103,20 @@ impl<'a> EffectGraph<'a> {
                             continue;
                         }
                         Mark::Temporary => {
-                            return Err(());
+                            return Err(anyhow!("Effect graph contains a cycle"));
                         }
                         Mark::Unmarked => {
                             current_node.mark = Mark::Temporary;
 
                             node_stack.push_back(Visit(current_node_container.0.clone(), true));
 
-                            for output in current_node.outputs.iter() {
-                                for connection in output.iter() {
-                                    node_stack.push_back(Visit(connection.clone(), false));
+                            for input in current_node.inputs.iter() {
+                                if let Some(input) = input {
+                                    node_stack.push_back(Visit(input.node.clone(), false));
+
+                                    if input.output_id >= input.node.read().unwrap().output_count {
+                                        input.node.write().unwrap().output_count = input.output_id + 1;
+                                    }
                                 }
                             }
                         }
@@ -102,29 +143,29 @@ impl<'a> EffectGraph<'a> {
         self.nodes = nodes_sorted;
         self.sorted = true;
 
+        debug!("Evaluation order of FX graph: {}", self.nodes.iter().map(|node| node.read().unwrap().label.clone()).collect::<Vec<_>>().join(", "));
+
         Ok(())
     }
 
     pub fn process(&mut self) {
-        println!("Nodes before topological sort: {:#?}", self.nodes);
         if !self.sorted {
             self.node_topological_sort().unwrap();
         }
-        println!("Nodes after topological sort: {:#?}", self.nodes);
 
-        for node in self.nodes.iter().rev() {
+        for node in self.nodes.iter() {
             let mut node = node.write().unwrap();
-            println!("Processing node: {:?}", node);
+            debug!("Processing node: {:?}", node);
             let null_parameters: SmallVec<[NodeParameterValue; 6]> = SmallVec::new();
 
             let input = node
                 .inputs
                 .iter()
                 .map(|input| {
-                    println!("  Input: {:?}", input);
+                    debug!("  Input: {:?}", input);
                     match input {
                         Some(input) => {
-                            let input = input.read().unwrap();
+                            let input = input.node.read().unwrap();
                             Some(input.current_value.packets[0].clone().unwrap())
                         }
                         _ => Some(smallvec![ViewValue::F64(0.0)]),
@@ -134,10 +175,10 @@ impl<'a> EffectGraph<'a> {
 
             let input_dataset = NodeDataset{ packets: input };
 
-            let output = (node.definition.processor)(&input_dataset, &null_parameters, node.outputs.len())
+            let output = (node.definition.processor)(&input_dataset, &null_parameters, node.output_count)
                 .with_context(|| format!("Error processing node: {}", node.label));
-            println!(" Output: {:?}", output);
-            
+            debug!(" Output: {:?}", output);
+
             node.current_value = output.unwrap();
         }
     }

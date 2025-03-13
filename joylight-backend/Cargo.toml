@@ -9,7 +9,9 @@ default-run = "joylight-backend"
 [dependencies]
 anyhow = "1.0.97"
 dyn-clone = "1.0.18"
+flexi_logger = { version = "0.29.8", features = ["async","colors"] }
 gtk4 = "0.9.5"
+log = "0.4.26"
 ndarray = "0.16.1"
 ndarray-linalg = { version = "0.17.0",  features = ["openblas-system"] }
 rand = "0.9.0"

@@ -1,7 +1,7 @@
 mod colors;
+mod effects;
 mod fixture;
 mod parameter;
-mod effects;
 
 use std::any::TypeId;
 use std::boxed::Box;
@@ -10,6 +10,8 @@ use std::collections::BTreeMap;
 use effects::{io::NodeDataset, node::NodeParameterValue};
 use fixture::fixture_template::FixtureTemplate;
 use fixture::Fixture;
+use flexi_logger::{AdaptiveFormat, FileSpec, Logger, WriteMode};
+use log::{debug, error, info, trace, warn};
 use parameter::parameter_dmx;
 use parameter::parameter_type::ParameterType;
 use parameter::parameter_value::ParameterValue;
@@ -17,12 +19,24 @@ use parameter::parameter_view;
 use parameter::parameter_view::ViewValue;
 use serde_json::json;
 use smallvec::smallvec;
+use std::time::SystemTime;
 use std::{thread, time};
 
 use zmq;
 
+fn setup_logger() {
+    let _ = Logger::try_with_env_or_str("debug")
+        .unwrap()
+        .adaptive_format_for_stderr(AdaptiveFormat::WithThread)
+        // .adaptive_format_for_stderr(AdaptiveFormat::Detailed)
+        .set_palette("196;208;82;8;8".into())
+        .start();
+}
+
 fn main() {
-    println!("Hello, world!");
+    let _ = setup_logger();
+
+    info!("Hello, world!");
 
     let brightness = ParameterType::new(
         "brightness",
@@ -204,19 +218,23 @@ fn main() {
     //     server.send(json_str.as_str(), 0).unwrap();
     // }
 
-    let input1 = smallvec![ViewValue::F64(100.0)]; 
-    let input2 = smallvec![ViewValue::F64(100.0), ViewValue::I64(1000), ViewValue::F64(2000.0)]; 
-
+    let input1 = smallvec![ViewValue::F64(100.0)];
+    let input2 = smallvec![
+        ViewValue::F64(100.0),
+        ViewValue::I64(1000),
+        ViewValue::F64(2000.0)
+    ];
 
     {
         println!("Node processing test 1");
-        let input = NodeDataset{ packets: smallvec![Some(input1.clone())] };
+        let input = NodeDataset {
+            packets: smallvec![Some(input1.clone())],
+        };
         println!(" Input:  {:?}", input);
-        
+
         let defn = effects::nodes::math::log();
         let node = defn.build("log");
 
-        // node.deprocessor(&input, smallvec![]);
         let null_parameters = smallvec![];
         let output = (node.definition.processor)(&input, &null_parameters, 1);
         println!(" Output: {:?}", output);
@@ -224,13 +242,14 @@ fn main() {
 
     {
         println!("Node processing test 2");
-        let input = NodeDataset{ packets: smallvec![Some(input1), Some(input2)] };;
+        let input = NodeDataset {
+            packets: smallvec![Some(input1), Some(input2)],
+        };
         println!(" Input:  {:?}", input);
-        
+
         let defn = effects::nodes::math::log();
         let node = defn.build("log");
 
-        // node.deprocessor(&input, smallvec![]);
         let null_parameters = smallvec![];
         let output = (node.definition.processor)(&input, &null_parameters, 1);
         println!(" Output: {:?}", output);
@@ -241,24 +260,18 @@ fn main() {
         let random = effects::nodes::math::random();
         let log = effects::nodes::math::log();
 
-        // let node1 = random.build("random1");
-        // let node2 = log.build("log1");
-        // let node3 = random.build("random2");
-        // let node4 = log.build("log2");
-
         let mut graph = effects::graph::EffectGraph::new();
         let random1 = graph.add_node(random.build("random1"));
         let log1 = graph.add_node(log.build("log1"));
         let random2 = graph.add_node(random.build("random2"));
         let log2 = graph.add_node(log.build("log2"));
 
-        random1.write().unwrap().outputs.push(smallvec![log1.clone()]);
-        log1.write().unwrap().inputs.push(Some(random1.clone()));
-        log2.write().unwrap().outputs.push(smallvec![log1.clone()]);
-        random2.write().unwrap().outputs.push(smallvec![log2.clone()]);
-        log2.write().unwrap().inputs.push(Some(random2.clone()));
-        log1.write().unwrap().inputs.push(Some(log2.clone()));
+        effects::node::link(&random1, &log1, 1);
+        effects::node::link(&log2, &log1, 1);
+        effects::node::link(&random2, &log2, 1);
+        // effects::node::link(&log1, &log2, 1);
 
         graph.process();
+        graph.graphviz();
     }
 }
