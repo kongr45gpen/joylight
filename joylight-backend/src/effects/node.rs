@@ -4,7 +4,7 @@ use smallvec::SmallVec;
 use std::sync::RwLock;
 use std::fmt;
 
-use super::io::NodeDataPacket;
+use smallvec::smallvec;
 use super::io::NodeDataset;
 
 #[derive(Debug, Clone)]
@@ -30,7 +30,15 @@ pub struct NodeParameterDefinition {
     pub default_value: NodeParameterValue,
 }
 
-type NodeProcessFn = fn(&NodeDataset, &SmallVec<[NodeParameterValue; 6]>) -> Result<NodeDataset, ()>;
+pub type NodeParameterSet = SmallVec<[NodeParameterValue; 6]>;
+
+/// The main process function of a node. Takes the input dataset and produces the output dataset.
+/// 
+/// Arguments:
+/// 1. Complete input dataset (with current values)
+/// 2. Input parameter set (with current values)
+/// 3. Recommended number of outputs. Useful e.g. for input blocks, so that the expected number of outputs is produced.
+type NodeProcessFn = fn(&NodeDataset, &NodeParameterSet, usize) -> Result<NodeDataset, ()>;
 
 /// A definition of a node in the effect graph.
 /// 
@@ -44,6 +52,7 @@ pub struct EffectNodeDefinition {
     pub processor: NodeProcessFn,
 }
 
+/// Mark for visited nodes and their status during the execution of graph traversal algorithms
 #[derive(Debug)]
 pub(super) enum Mark {
     Unmarked,
@@ -65,9 +74,12 @@ pub struct EffectNode<'a> {
     /// Here, the outer array enumerates each semantically independent output, and the inner array
     /// contains all the connections of this output.
     pub outputs: SmallVec<[SmallVec<[Arc<RwLock<EffectNode<'a>>>; 3]>; 3]>,
+    /// The x,y coordinates of the node in the node graph
     pub position: (f64, f64),
+    /// The output value of the node, if calculated with [EffectNode::processor]
     pub current_value: NodeDataset,
-    pub mark: Mark,
+    /// Marking variable used during traversal/search of the node graph
+    pub(super) mark: Mark,
 }
 
 impl<'a> fmt::Debug for EffectNode<'a> {
@@ -85,7 +97,7 @@ impl EffectNodeDefinition {
             inputs: SmallVec::new(),
             outputs: SmallVec::new(),
             position: (0.0, 0.0),
-            current_value: NodeDataset(SmallVec::new()),
+            current_value: NodeDataset{ packets: smallvec![] },
             mark: Mark::Unmarked,
         }
     }

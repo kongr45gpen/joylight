@@ -7,7 +7,6 @@ use smallvec::smallvec;
 use smallvec::SmallVec;
 use zmq::Error;
 
-use crate::effects::io::NodeDataPacket;
 use crate::effects::io::NodeDataset;
 use crate::effects::node::EffectNode;
 use crate::effects::node::Mark;
@@ -125,16 +124,16 @@ impl<'a> EffectGraph<'a> {
                     match input {
                         Some(input) => {
                             let input = input.read().unwrap();
-                            Some(input.current_value.0[0].clone().unwrap())
+                            Some(input.current_value.packets[0].clone().unwrap())
                         }
-                        _ => Some(NodeDataPacket(smallvec![ViewValue::F64(0.0)])),
+                        _ => Some(smallvec![ViewValue::F64(0.0)]),
                     }
                 })
-                .collect::<SmallVec<[Option<NodeDataPacket>; 3]>>();
+                .collect();
 
-            let input_dataset = NodeDataset(input);
+            let input_dataset = NodeDataset{ packets: input };
 
-            let output = (node.definition.processor)(&input_dataset, &null_parameters);
+            let output = (node.definition.processor)(&input_dataset, &null_parameters, node.outputs.len());
             println!(" Output: {:?}", output);
             node.current_value = output.unwrap();
         }

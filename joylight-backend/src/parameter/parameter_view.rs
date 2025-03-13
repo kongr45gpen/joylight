@@ -7,7 +7,10 @@ use crate::{
 };
 use dyn_clone::DynClone;
 use serde::{Deserialize, Serialize};
+use smallvec::SmallVec;
 use std::fmt::Debug;
+
+const N: usize = 6;
 
 /// Protocol input value that may correspond to a view.
 #[derive(Clone, Debug)]
@@ -16,6 +19,9 @@ pub enum ViewValue {
     I64(i64),
     String(String),
 }
+
+/// A set of viewvalues. Each value may be of a different type.
+pub type ViewValuePacket = SmallVec<[ViewValue; N]>;
 
 /// A parameter view represents the user-editable representation of a parameter's type and value.
 ///

@@ -7,7 +7,7 @@ use std::any::TypeId;
 use std::boxed::Box;
 use std::collections::BTreeMap;
 
-use effects::{io::{NodeDataPacket, NodeDataset}, node::NodeParameterValue};
+use effects::{io::NodeDataset, node::NodeParameterValue};
 use fixture::fixture_template::FixtureTemplate;
 use fixture::Fixture;
 use parameter::parameter_dmx;
@@ -204,13 +204,13 @@ fn main() {
     //     server.send(json_str.as_str(), 0).unwrap();
     // }
 
-    let input1: NodeDataPacket = NodeDataPacket(smallvec![ViewValue::F64(100.0)]); 
-    let input2 = NodeDataPacket(smallvec![ViewValue::F64(100.0), ViewValue::I64(1000), ViewValue::F64(2000.0)]); 
+    let input1 = smallvec![ViewValue::F64(100.0)]; 
+    let input2 = smallvec![ViewValue::F64(100.0), ViewValue::I64(1000), ViewValue::F64(2000.0)]; 
 
 
     {
         println!("Node processing test 1");
-        let input = NodeDataset(smallvec![Some(input1.clone())]);
+        let input = NodeDataset{ packets: smallvec![Some(input1.clone())] };
         println!(" Input:  {:?}", input);
         
         let defn = effects::nodes::math::log();
@@ -218,13 +218,13 @@ fn main() {
 
         // node.deprocessor(&input, smallvec![]);
         let null_parameters = smallvec![];
-        let output = (node.definition.processor)(&input, &null_parameters);
+        let output = (node.definition.processor)(&input, &null_parameters, 1);
         println!(" Output: {:?}", output);
     }
 
     {
         println!("Node processing test 2");
-        let input = NodeDataset(smallvec![Some(input1), Some(input2)]);
+        let input = NodeDataset{ packets: smallvec![Some(input1), Some(input2)] };;
         println!(" Input:  {:?}", input);
         
         let defn = effects::nodes::math::log();
@@ -232,7 +232,7 @@ fn main() {
 
         // node.deprocessor(&input, smallvec![]);
         let null_parameters = smallvec![];
-        let output = (node.definition.processor)(&input, &null_parameters);
+        let output = (node.definition.processor)(&input, &null_parameters, 1);
         println!(" Output: {:?}", output);
     }
 
