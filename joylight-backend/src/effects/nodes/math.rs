@@ -4,7 +4,31 @@ use crate::parameter::parameter_view::{ViewValue, ViewValuePacket};
 use rand::Rng;
 use smallvec::{smallvec, SmallVec};
 use std::cell::OnceCell;
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
+
+fn universal_math<F>(inputs: &NodeDataset, op: F) -> Result<NodeDataset>
+where
+    F: Fn(f64) -> f64 + 'static,
+{
+    inputs.map_values(|packet| {
+        packet_to_f64(packet)?
+            .iter()
+            .map(|value| Ok(ViewValue::F64(op(*value))))
+            .collect()
+    })
+}
+
+pub fn abs() -> EffectNodeDefinition {
+    EffectNodeDefinition {
+        name: "Abs".to_string(),
+        help: Some("Absolute Value".to_string()),
+        parameters: vec![],
+        node_type: NodeType::Processing,
+        processor: |inputs, _, _| {
+            universal_math(inputs, f64::abs)
+        },
+    }
+}
 
 pub fn log() -> EffectNodeDefinition {
     EffectNodeDefinition {
@@ -13,12 +37,7 @@ pub fn log() -> EffectNodeDefinition {
         parameters: vec![],
         node_type: NodeType::Processing,
         processor: |inputs, _, _| {
-            inputs.map_values(|packet| {
-                packet_to_f64(packet)?
-                    .into_iter()
-                    .map(|value| Ok(ViewValue::F64(value.log10())))
-                    .collect()
-            })
+            universal_math(inputs, f64::log10)
         },
     }
 }
@@ -36,5 +55,3 @@ pub fn random() -> EffectNodeDefinition {
         },
     }
 }
-
-// const log: OnceCell<EffectNodeDefinition> = OnceCell::new();

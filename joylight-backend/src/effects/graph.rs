@@ -4,16 +4,12 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 use anyhow::Context;
-use smallvec::smallvec;
-use smallvec::SmallVec;
-use anyhow::{anyhow,Result};
+use anyhow::{anyhow, Result};
 use log::{debug, info};
+use smallvec::SmallVec;
 
 use crate::effects::io::NodeDataset;
-use crate::effects::node::EffectNode;
-use crate::effects::node::Mark;
-use crate::effects::node::NodeParameterValue;
-use crate::parameter::parameter_view::ViewValue;
+use crate::effects::node::{EffectNode, Mark, NodeParameterValue, NodeRef};
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -21,7 +17,7 @@ use std::process::{Command, Stdio};
 #[derive(Debug)]
 pub struct EffectGraph<'a> {
     sorted: bool,
-    pub nodes: Vec<Arc<RwLock<EffectNode<'a>>>>,
+    pub nodes: Vec<NodeRef<'a>>,
 }
 
 impl<'a> EffectGraph<'a> {
@@ -32,6 +28,7 @@ impl<'a> EffectGraph<'a> {
         }
     }
 
+    /// Run "graph-easy" in Perl to print an ASCII representation of the graph in the terminal
     pub fn graphviz(&self) -> String {
         let mut graphviz = String::new();
         graphviz.push_str("digraph G {\n");
@@ -60,12 +57,10 @@ impl<'a> EffectGraph<'a> {
         stdin.write_all(graphviz.as_bytes()).unwrap();
 
         let output = child.wait_with_output().unwrap();
-        println!("{}", String::from_utf8_lossy(&output.stdout));
-
-        graphviz
+        String::from_utf8_lossy(&output.stdout).into()
     }
 
-    pub fn add_node(&mut self, node: EffectNode<'a>) -> Arc<RwLock<EffectNode<'a>>> {
+    pub fn add_node(&mut self, node: EffectNode<'a>) -> NodeRef<'a> {
         let new_node = Arc::new(RwLock::new(node));
 
         self.nodes.push(new_node.clone());
@@ -74,6 +69,12 @@ impl<'a> EffectGraph<'a> {
         new_node
     }
 
+    /// Topologically sort all nodes in the graph
+    ///
+    /// This function replaces `self.nodes` with a version sorted so that nodes always come after their
+    /// dependencies. You should call this
+    ///
+    /// It will return an error when the sort is not possible, for example, when there is a cycle.
     fn node_topological_sort(&mut self) -> Result<()> {
         if self.nodes.is_empty() {
             return Err(anyhow!("Effect graph is empty"));
@@ -82,104 +83,135 @@ impl<'a> EffectGraph<'a> {
         let mut nodes_sorted = vec![];
         nodes_sorted.reserve(self.nodes.len());
 
-        struct Visit<'a>(Arc<RwLock<EffectNode<'a>>>, bool);
+        #[derive(Clone)]
+        struct Visit<'a>(NodeRef<'a>, bool);
 
         let mut node_stack: LinkedList<Visit<'a>> = LinkedList::new();
-        node_stack.push_back(Visit(self.nodes.first().unwrap().clone(), false));
+        node_stack.extend(self.nodes.iter().map(|node| Visit(node.clone(), false)));
 
-        // Iterative depth-first search to sort the graph topologically
-        // Cormen et al. (2001), see https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
-        while !node_stack.is_empty() {
-            {
-                let current_node_container = node_stack.pop_back().unwrap();
-                let mut current_node = current_node_container.0.write().unwrap();
+        // Reset node properties
+        for node in self.nodes.iter() {
+            let mut node: std::sync::RwLockWriteGuard<'_, EffectNode<'a>> = node.write().unwrap();
+            node.mark = Mark::Unmarked;
+            node.output_count = 0;
+        }
 
-                if current_node_container.1 {
-                    current_node.mark = Mark::Permanent;
-                    nodes_sorted.push(current_node_container.0.clone());
-                } else {
-                    match current_node.mark {
-                        Mark::Permanent => {
-                            continue;
-                        }
-                        Mark::Temporary => {
-                            return Err(anyhow!("Effect graph contains a cycle"));
-                        }
-                        Mark::Unmarked => {
-                            current_node.mark = Mark::Temporary;
+        fn visit_node<'a>(
+            visit: &Visit<'a>,
+            nodes_sorted: &mut Vec<NodeRef<'a>>,
+            node_stack: &mut LinkedList<Visit<'a>>,
+        ) -> Result<()> {
+            let mut current_node = visit.0.write().unwrap();
 
-                            node_stack.push_back(Visit(current_node_container.0.clone(), true));
+            if visit.1 {
+                current_node.mark = Mark::Permanent;
+                nodes_sorted.push(visit.0.clone());
 
-                            for input in current_node.inputs.iter() {
-                                if let Some(input) = input {
-                                    node_stack.push_back(Visit(input.node.clone(), false));
+                Ok(())
+            } else {
+                match current_node.mark {
+                    Mark::Permanent => {
+                        return Ok(());
+                    }
+                    Mark::Temporary => {
+                        return Err(anyhow!("Effect graph contains a cycle"));
+                    }
+                    Mark::Unmarked => {
+                        current_node.mark = Mark::Temporary;
 
-                                    if input.output_id >= input.node.read().unwrap().output_count {
-                                        input.node.write().unwrap().output_count = input.output_id + 1;
-                                    }
+                        node_stack.push_back(Visit(visit.0.clone(), true));
+
+                        for input in current_node.inputs.iter() {
+                            if let Some(input) = input {
+                                node_stack.push_back(Visit(input.node.clone(), false));
+
+                                if input.output_id >= input.node.read().unwrap().output_count {
+                                    let mut node = input.node.write().unwrap();
+                                    node.output_count = input.output_id + 1;
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            // If the graph is disconnected
-            if node_stack.is_empty() && nodes_sorted.len() < self.nodes.len() {
-                for node_container in self.nodes.iter() {
-                    let node = node_container.read().unwrap();
-
-                    match &node.mark {
-                        Mark::Unmarked => {
-                            node_stack.push_back(Visit(node_container.clone(), false));
-                            break;
-                        }
-                        _ => {}
-                    }
-                }
+                Ok(())
             }
+        }
+
+        // Iterative depth-first search to sort the graph topologically
+        // Cormen et al. (2001), see https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
+        node_stack.push_back(Visit(self.nodes.first().unwrap().clone(), false));
+
+        while !node_stack.is_empty() {
+            let visit = node_stack.pop_back().unwrap();
+            visit_node(&visit, &mut nodes_sorted, &mut node_stack)?;
         }
 
         self.nodes = nodes_sorted;
         self.sorted = true;
 
-        debug!("Evaluation order of FX graph: {}", self.nodes.iter().map(|node| node.read().unwrap().label.clone()).collect::<Vec<_>>().join(", "));
+        debug!(
+            "Evaluation order of FX graph: {}",
+            self.nodes
+                .iter()
+                .map(|node| node.read().unwrap().label.clone())
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
 
         Ok(())
     }
 
-    pub fn process(&mut self) {
+    /// Process all nodes in the graph, storing their new state in the node instance
+    pub fn process(&mut self) -> Result<()> {
         if !self.sorted {
             self.node_topological_sort().unwrap();
         }
 
+        let null_parameters: SmallVec<[NodeParameterValue; 6]> = SmallVec::new();
+
         for node in self.nodes.iter() {
             let mut node = node.write().unwrap();
-            debug!("Processing node: {:?}", node);
-            let null_parameters: SmallVec<[NodeParameterValue; 6]> = SmallVec::new();
+            debug!("Processing node: {}", node.label);
 
-            let input = node
+            let input_data = node
                 .inputs
                 .iter()
                 .map(|input| {
-                    debug!("  Input: {:?}", input);
+                    // for each option<input>
                     match input {
-                        Some(input) => {
-                            let input = input.node.read().unwrap();
-                            Some(input.current_value.packets[0].clone().unwrap())
+                        Some(link) => {
+                            let from_node = link.node.read().unwrap();
+                            from_node
+                                .current_value
+                                .packets
+                                .get(link.output_id)
+                                .ok_or(anyhow!(
+                                    "Asked for output {} from node `{}`, but it only has {} outputs",
+                                    link.output_id,
+                                    from_node.label,
+                                    from_node.current_value.packets.len()
+                                ))
+                                .map(|packet| packet.clone())
                         }
-                        _ => Some(smallvec![ViewValue::F64(0.0)]),
+                        None => Ok(None),
                     }
                 })
-                .collect();
+                .collect::<Result<SmallVec<_>>>()
+                .with_context(|| format!("Error processing node: {}", node.label))?;
 
-            let input_dataset = NodeDataset{ packets: input };
+            let input_dataset = NodeDataset {
+                packets: input_data,
+            };
 
-            let output = (node.definition.processor)(&input_dataset, &null_parameters, node.output_count)
-                .with_context(|| format!("Error processing node: {}", node.label));
+            let output =
+                (node.definition.processor)(&input_dataset, &null_parameters, node.output_count)
+                    .with_context(|| format!("Error processing node: {}", node.label));
             debug!(" Output: {:?}", output);
 
-            node.current_value = output.unwrap();
+            node.current_value = output?;
         }
+
+        Ok(())
     }
 }

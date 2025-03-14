@@ -42,7 +42,7 @@ pub type NodeParameterSet = SmallVec<[NodeParameterValue; 6]>;
 type NodeProcessFn = fn(&NodeDataset, &NodeParameterSet, usize) -> Result<NodeDataset>;
 
 /// An Arc reference to an effects node
-type NodeRef<'a> = Arc<RwLock<EffectNode<'a>>>;
+pub type NodeRef<'a> = Arc<RwLock<EffectNode<'a>>>;
 
 /// A definition of a node in the effect graph.
 ///
