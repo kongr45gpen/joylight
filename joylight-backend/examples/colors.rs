@@ -1,6 +1,6 @@
-mod colors;
-mod fixture;
-mod parameter;
+use joylight_backend::colors;
+use joylight_backend::effects;
+use joylight_backend::fixture;
 
 use gtk4 as gtk;
 use gtk::prelude::*;

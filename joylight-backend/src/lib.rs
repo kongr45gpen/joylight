@@ -1,0 +1,15 @@
+pub mod colors;
+pub mod effects;
+pub mod fixture;
+pub mod parameter;
+
+use flexi_logger::{AdaptiveFormat, FileSpec, Logger, WriteMode};
+
+pub fn setup_logger() {
+    let _ = Logger::try_with_env_or_str("debug")
+        .unwrap()
+        .adaptive_format_for_stderr(AdaptiveFormat::WithThread)
+        // .adaptive_format_for_stderr(AdaptiveFormat::Detailed)
+        .set_palette("196;208;82;8;8".into())
+        .start();
+}
