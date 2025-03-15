@@ -1,3 +1,8 @@
+// OK to ignore during early development, to be removed later
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+
 pub mod colors;
 pub mod effects;
 pub mod fixture;
