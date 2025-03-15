@@ -28,10 +28,10 @@ impl Fixture {
             parameters.push(value);
         }
 
-        return Fixture {
+        Fixture {
             name: name.to_string(),
             template,
             parameters,
-        };
+        }
     }
 }

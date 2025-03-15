@@ -79,12 +79,12 @@ pub fn change_base(
 
     let a1 = Array2::from_shape_vec(
         (from.len(), 3),
-        from.iter().flat_map(|RGBTuple(rgb)| rgb.iter().map(|&x| x as f64)).collect(),
+        from.iter().flat_map(|RGBTuple(rgb)| rgb.iter().copied()).collect(),
     ).map_err(|_| ())?;
 
     let a2 = Array2::from_shape_vec(
         (to.len(), 3),
-        to.iter().flat_map(|RGBTuple(rgb)| rgb.iter().map(|&x| x as f64)).collect(),
+        to.iter().flat_map(|RGBTuple(rgb)| rgb.iter().copied()).collect(),
     ).map_err(|_| ())?;
 
     let b = Array::from_vec(color);
@@ -105,7 +105,7 @@ pub fn change_base(
         }
     }
 
-    return Err(());
+    Err(())
 
 
 }

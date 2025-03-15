@@ -91,7 +91,7 @@ pub struct EffectNode<'a> {
     pub(super) mark: Mark,
 }
 
-impl<'a> fmt::Debug for EffectNode<'a> {
+impl fmt::Debug for EffectNode<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,

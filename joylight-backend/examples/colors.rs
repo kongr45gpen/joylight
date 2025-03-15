@@ -1,12 +1,9 @@
 use joylight_backend::colors;
-use joylight_backend::effects;
-use joylight_backend::fixture;
 
 use gtk4 as gtk;
 use gtk::prelude::*;
-use gtk::{glib, Application, ApplicationWindow, Button, ColorButton, Label, TextView};
+use gtk::{glib, Application, ApplicationWindow, ColorButton, Label, TextView};
 use gtk4::gdk::RGBA;
-use serde_json;
 
 fn main() -> glib::ExitCode {
     let application = Application::builder()

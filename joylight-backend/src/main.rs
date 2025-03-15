@@ -27,7 +27,6 @@ use serde_json::json;
 use std::time::SystemTime;
 use std::{thread, time};
 
-use zmq;
 
 fn main() {
     setup_logger();

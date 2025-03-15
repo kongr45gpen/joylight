@@ -20,6 +20,12 @@ pub struct EffectGraph<'a> {
     pub nodes: Vec<NodeRef<'a>>,
 }
 
+impl Default for EffectGraph<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> EffectGraph<'a> {
     pub fn new() -> Self {
         EffectGraph {
@@ -80,8 +86,7 @@ impl<'a> EffectGraph<'a> {
             return Err(anyhow!("Effect graph is empty"));
         }
 
-        let mut nodes_sorted = vec![];
-        nodes_sorted.reserve(self.nodes.len());
+        let mut nodes_sorted = Vec::with_capacity(self.nodes.len());
 
         #[derive(Clone)]
         struct Visit<'a>(NodeRef<'a>, bool);
@@ -121,14 +126,12 @@ impl<'a> EffectGraph<'a> {
 
                         node_stack.push_back(Visit(visit.0.clone(), true));
 
-                        for input in current_node.inputs.iter() {
-                            if let Some(input) = input {
-                                node_stack.push_back(Visit(input.node.clone(), false));
+                        for input in current_node.inputs.iter().flatten() {
+                            node_stack.push_back(Visit(input.node.clone(), false));
 
-                                if input.output_id >= input.node.read().unwrap().output_count {
-                                    let mut node = input.node.write().unwrap();
-                                    node.output_count = input.output_id + 1;
-                                }
+                            if input.output_id >= input.node.read().unwrap().output_count {
+                                let mut node = input.node.write().unwrap();
+                                node.output_count = input.output_id + 1;
                             }
                         }
                     }
@@ -191,8 +194,7 @@ impl<'a> EffectGraph<'a> {
                                     link.output_id,
                                     from_node.label,
                                     from_node.current_value.packets.len()
-                                ))
-                                .map(|packet| packet.clone())
+                                )).cloned()
                         }
                         None => Ok(None),
                     }

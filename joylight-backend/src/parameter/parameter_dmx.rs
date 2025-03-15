@@ -32,7 +32,7 @@ fn map_number<T: Sub<Output = T> + PartialOrd + Into<f64> + Mul<f64, Output = f6
     let input_diff = input - input_min;
     let factor = output_range / input_range;
 
-    return output_min + (input_diff * factor).round() as u64;
+    output_min + (input_diff * factor).round() as u64
 }
 
 /// A [ParameterEncoder] transforms a [ParameterValue] into something that can be read by an external interface,

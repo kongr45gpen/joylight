@@ -43,7 +43,7 @@ impl NodeDataset {
     pub fn map_values(&self, f: impl Fn(&ViewValuePacket) -> Result<ViewValuePacket>) -> Result<NodeDataset> {
         self.packets.iter()
             .map(|packet| match packet {
-                Some(packet) => f(packet).map(|packet| Some(packet)),
+                Some(packet) => f(packet).map(Some),
                 None => Ok(None),
             })
             .collect::<Result<_>>()

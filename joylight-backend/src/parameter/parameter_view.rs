@@ -30,11 +30,11 @@ pub type ViewValuePacket = SmallVec<[ViewValue; N]>;
 /// It can be reliably converted to and from the corresponding parameter value
 pub trait ParameterView: DynClone + Debug {
     fn to_value(&self, input: Vec<ViewValue>, value: &mut ParameterValue) -> Result<(), ()> {
-        Err(())
+        todo!()
     }
 
     fn from_value(&self, value: &ParameterValue) -> Result<Vec<ViewValue>, ()> {
-        Err(())
+        todo!()
     }
 }
 

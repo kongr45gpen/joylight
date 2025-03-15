@@ -44,17 +44,17 @@ impl ParameterType {
         Self {
             alias: alias.to_string(),
             display_name: display_name.to_string(),
-            view: view,
-            encoding: encoding,
-            default_value: default_value,
-            comments: comments,
+            view,
+            encoding,
+            default_value,
+            comments,
         }
     }
 
     /// Instantiate the default parameter value from a parameter type
     pub fn new_value(&self) -> ParameterValue {
         // return dyn_clone::clone_box(&*self.default_value);
-        return self.default_value.clone();
+        self.default_value.clone()
     }
 }
 

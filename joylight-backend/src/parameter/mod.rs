@@ -16,13 +16,13 @@
 //! ```
 //! 
 //! - **Views**: A parameter view is shown to the user and can be converted to/from a parameter value. The [parameter_view::ParameterView]
-//! trait describes the view and can be anything from a group of numbers to an RGBA color picker. **The frontend sees only the view**
-//! which is encoded in [parameter_view::ViewValue]. To support extensibility, views are typed as traits and should be used as such
-//! (e.g. `Box<dyn ParameterView>`).
+//!   trait describes the view and can be anything from a group of numbers to an RGBA color picker. **The frontend sees only the view**
+//!   which is encoded in [parameter_view::ViewValue]. To support extensibility, views are typed as traits and should be used as such
+//!   (e.g. `Box<dyn ParameterView>`).
 //! - **Models**: The internal model of the parameter, as stored in the backend, should correspond 1-1 to the mathematical representation
-//! of the fixture's state. This is described by the [parameter_value::ParameterValue] enum.
+//!   of the fixture's state. This is described by the [parameter_value::ParameterValue] enum.
 //! - **Encoders**: The [parameter_dmx::ParameterEncoder] trait describes how the parameter value is mapped to the fixture's protocol
-//! (such as DMX). The final encoded value then depends on the protocol used.
+//!   (such as DMX). The final encoded value then depends on the protocol used.
 //! 
 //! ## Example
 //! Let's take the color of a CMY (Cyan, Magenta, Yellow) fixture as an example.

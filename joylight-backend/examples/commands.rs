@@ -6,13 +6,8 @@ use log::*;
 
 #[derive(Debug, Clone)]
 enum Command {
-    // Select(String),
-    // Set(String, f64),
     Select(Vec<String>),
     Set(String),
-    Toast,
-    Numero(f64)
-    // Toast(String),
 }
 
 fn parser() -> impl Parser<char, Command, Error = Simple<char>> {
