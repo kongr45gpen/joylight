@@ -5,8 +5,10 @@ use anyhow::{anyhow, Context, Result};
 use crate::parameter::parameter_view::{ViewValue, ViewValuePacket};
 
 /// A node may have multiple inputs and outputs that may themselves be vectors.
-/// A "dataset" represents all the set of [NodeDataPacket]s that are input or output by the node.
-#[derive(Debug, Clone)]
+/// A "dataset" represents all the set of [ViewValuePacket]s that are input or output by the node.
+/// 
+/// TODO: Since ViewValuePacket is a vector, this doesn't need to be optional
+#[derive(Debug, Clone, Default)]
 pub struct NodeDataset {
     pub packets: SmallVec<[Option<ViewValuePacket>; 3]>,
 }

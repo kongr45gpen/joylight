@@ -1,8 +1,16 @@
+use joylight_backend::effects::node::link;
+use joylight_backend::effects::nodes::output::output;
+use joylight_backend::fixture::selection::Filter;
 use joylight_backend::parameter::parameter_view::ViewValue;
 use joylight_backend::effects;
 use joylight_backend::effects::io::NodeDataset;
 use joylight_backend::setup_logger;
+use joylight_backend::show::Show;
 use smallvec::smallvec;
+use std::sync::Arc;
+use std::sync::RwLock;
+use std::time::Instant;
+use log::*;
 
 fn main() {
     setup_logger();
@@ -44,11 +52,13 @@ fn main() {
         println!(" Output: {:?}", output);
     }
 
+    let random = effects::nodes::math::random();
+    let clock = effects::nodes::math::clock(Instant::now());
+    let log = effects::nodes::math::log();
+    let abs = effects::nodes::math::abs();
+
     {
         println!("Node processing test 3");
-        let random = effects::nodes::math::random();
-        let log = effects::nodes::math::log();
-        let abs = effects::nodes::math::abs();
 
         let mut graph = effects::graph::EffectGraph::new();
         let random1 = graph.add_node(random.build("random1"));
@@ -68,5 +78,64 @@ fn main() {
 
         graph.process().unwrap();
         println!("{}", graph.graphviz());
+    }
+
+    {
+        println!("Node processing test 4");
+
+        let brightness = joylight_backend::parameter::parameter_type::ParameterType::new(
+            "brightness",
+            "Brightness",
+            Box::new(joylight_backend::parameter::parameter_view::percentage()),
+            Box::new(joylight_backend::parameter::parameter_dmx::DMXMappingTransformer {
+                input_min: 0.0,
+                input_max: 100.0,
+                size: 1,
+                endianness: joylight_backend::parameter::parameter_dmx::Endianness::Big,
+            }),
+            joylight_backend::parameter::parameter_value::ParameterValue::Number(vec![0.0]),
+            None,
+        );
+
+        let fixtemp = joylight_backend::fixture::fixture_template::FixtureTemplate {
+            name: "Dimmer".to_string(),
+            parameters: vec![
+                brightness.clone(),
+            ],
+        };
+
+        let fixture1 = Arc::new(RwLock::new(joylight_backend::fixture::Fixture::new("Dimmer1", &fixtemp)));
+        let fixture2 = Arc::new(RwLock::new(joylight_backend::fixture::Fixture::new("Dimmer2", &fixtemp)));
+        let fixture3 = Arc::new(RwLock::new(joylight_backend::fixture::Fixture::new("Dimmer3", &fixtemp)));
+
+        let mut show= Show::default();
+        show.add_fixture(fixture1);
+        show.add_fixture(fixture2);
+        show.add_fixture(fixture3);
+
+        // let selection = ;
+
+        let selection = Arc::new(RwLock::new(joylight_backend::fixture::selection::FilteredSelection::new(
+            "all",
+            Filter::Predicate(Box::new(|f| f.read().unwrap().name == "Dimmer2")),
+        )));
+
+        show.add_selection(selection.clone());
+        show.refresh_fixtures();
+
+        let output = output("brightness", selection);
+
+        let mut graph: effects::graph::EffectGraph<'_> = effects::graph::EffectGraph::new();
+        let node1 = graph.add_node(clock.build("input"));
+        let node2 = graph.add_node(output.build("output"));
+        link(&node1, &node2, 0);
+
+        let dbg = || { info!("Fixture brightnesses: {:?}", show.fixtures.iter().map(|f| f.1.read().unwrap().parameters[0].clone()).collect::<Vec<_>>()) };
+
+        dbg();
+        for _ in 0..10 {
+            graph.process().unwrap();
+            dbg();
+        }
     }
 }

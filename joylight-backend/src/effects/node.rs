@@ -39,7 +39,7 @@ pub type NodeParameterSet = SmallVec<[NodeParameterValue; 6]>;
 /// 1. Complete input dataset (with current values)
 /// 2. Input parameter set (with current values)
 /// 3. Recommended number of outputs. Useful e.g. for input blocks, so that the expected number of outputs is produced.
-type NodeProcessFn = fn(&NodeDataset, &NodeParameterSet, usize) -> Result<NodeDataset>;
+type NodeProcessFn = Box<dyn Fn(&NodeDataset, &NodeParameterSet, usize) -> Result<NodeDataset>>;
 
 /// An Arc reference to an effects node
 pub type NodeRef<'a> = Arc<RwLock<EffectNode<'a>>>;
@@ -47,13 +47,18 @@ pub type NodeRef<'a> = Arc<RwLock<EffectNode<'a>>>;
 /// A definition of a node in the effect graph.
 ///
 /// One definition can be instantiated multiple times in the graph.
-#[derive(Debug)]
 pub struct EffectNodeDefinition {
     pub name: String,
     pub help: Option<String>,
     pub parameters: Vec<NodeParameterDefinition>,
     pub node_type: NodeType,
     pub processor: NodeProcessFn,
+}
+
+impl Debug for EffectNodeDefinition {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "EffectNodeDefinition {}", self.name)
+    }
 }
 
 /// Mark for visited nodes and their status during the execution of graph traversal algorithms
@@ -85,7 +90,7 @@ pub struct EffectNode<'a> {
     pub output_count: usize,
     /// The x,y coordinates of the node in the node graph
     pub position: (f64, f64),
-    /// The output value of the node, if calculated with [EffectNode::processor]
+    /// The output value of the node, if calculated with [EffectNodeDefinition::processor]
     pub current_value: NodeDataset,
     /// Marking variable used during traversal/search of the node graph
     pub(super) mark: Mark,

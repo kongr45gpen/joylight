@@ -7,6 +7,7 @@ mod colors;
 mod effects;
 mod fixture;
 mod parameter;
+mod show;
 
 use std::any::TypeId;
 use std::boxed::Box;

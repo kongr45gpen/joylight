@@ -47,7 +47,7 @@ fn main() {
         ],
     };
 
-    let mut three_fixture = Fixture::new("BabisOFlou", three_fixture_template.clone());
+    let mut three_fixture = Fixture::new("BabisOFlou", &three_fixture_template);
 
     println!("{:?}", three_fixture);
 
