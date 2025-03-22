@@ -6,11 +6,9 @@ use crate::parameter::parameter_view::{ViewValue, ViewValuePacket};
 
 /// A node may have multiple inputs and outputs that may themselves be vectors.
 /// A "dataset" represents all the set of [ViewValuePacket]s that are input or output by the node.
-/// 
-/// TODO: Since ViewValuePacket is a vector, this doesn't need to be optional
 #[derive(Debug, Clone, Default)]
 pub struct NodeDataset {
-    pub packets: SmallVec<[Option<ViewValuePacket>; 3]>,
+    pub packets: SmallVec<[ViewValuePacket; 3]>,
 }
 
 /// Most node definitions will work on numbers. This function makes sure that the input data is in a floating-point format
@@ -44,10 +42,7 @@ impl NodeDataset {
     /// producing the same number of outputs.
     pub fn map_values(&self, f: impl Fn(&ViewValuePacket) -> Result<ViewValuePacket>) -> Result<NodeDataset> {
         self.packets.iter()
-            .map(|packet| match packet {
-                Some(packet) => f(packet).map(Some),
-                None => Ok(None),
-            })
+            .map(|packet| f(packet))
             .collect::<Result<_>>()
             .map(|packets| NodeDataset{ packets })
     }
@@ -55,21 +50,21 @@ impl NodeDataset {
     /// Create a new dataset with a single input packet.
     pub fn new_single(packet: ViewValuePacket) -> Self {
         NodeDataset {
-            packets: SmallVec::from_vec(vec![Some(packet)])
+            packets: SmallVec::from_vec(vec![packet])
         }
     }
 
     /// Create a new dataset based on a generator function.
     pub fn new_from_generator(n: usize, f: impl Fn() -> ViewValuePacket) -> Self {
         NodeDataset {
-            packets: (0..n).map(|_| Some(f())).collect()
+            packets: (0..n).map(|_| f()).collect()
         }
     }
 
     /// Create a new dataset based on a generator function that may return an error.
     pub fn try_new_from_generator(n: usize, f: impl Fn() -> Result<ViewValuePacket>) -> Result<Self> {
         Ok(NodeDataset {
-            packets: (0..n).map(|_| Some(f()).transpose()).collect::<Result<_>>()?
+            packets: (0..n).map(|_| f()).collect::<Result<_>>()?
         })
     }
 }

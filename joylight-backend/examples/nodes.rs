@@ -25,7 +25,7 @@ fn main() {
     {
         println!("Node processing test 1");
         let input = NodeDataset {
-            packets: smallvec![Some(input1.clone())],
+            packets: smallvec![input1.clone()],
         };
         println!(" Input:  {:?}", input);
 
@@ -40,7 +40,7 @@ fn main() {
     {
         println!("Node processing test 2");
         let input = NodeDataset {
-            packets: smallvec![Some(input1), Some(input2)],
+            packets: smallvec![input1, input2],
         };
         println!(" Input:  {:?}", input);
 
@@ -113,8 +113,6 @@ fn main() {
         show.add_fixture(fixture2);
         show.add_fixture(fixture3);
 
-        // let selection = ;
-
         let selection = Arc::new(RwLock::new(joylight_backend::fixture::selection::FilteredSelection::new(
             "all",
             Filter::Predicate(Box::new(|f| f.read().unwrap().name == "Dimmer2")),
@@ -130,10 +128,10 @@ fn main() {
         let node2 = graph.add_node(output.build("output"));
         link(&node1, &node2, 0);
 
-        let dbg = || { info!("Fixture brightnesses: {:?}", show.fixtures.iter().map(|f| f.1.read().unwrap().parameters[0].clone()).collect::<Vec<_>>()) };
+        let dbg = || { info!("Fixture brightnesses: {:?}", show.fixtures.iter().map(|f| f.1.read().unwrap().parameters.clone()).collect::<Vec<_>>()) };
 
         dbg();
-        for _ in 0..10 {
+        for _ in 0..2 {
             graph.process().unwrap();
             dbg();
         }

@@ -16,16 +16,14 @@ pub fn output(named_parameter: &str, selection: Arc<RwLock<dyn Selection>>) -> E
 
             let selection = selection.read().unwrap();
 
-            let paket = packet_to_f64(&inputs.packets.first().unwrap().as_ref().unwrap())?;
-            
+            let paket = packet_to_f64(&inputs.packets.first().unwrap())?;
+
             for fixture in selection.fixtures() {
                 debug!("iterating over fixture {} for parameter {}",  fixture.read().unwrap().name, named_parameter);
 
                 let mut fxt_write = fixture.write().unwrap();
-                let mut param = fxt_write.get_parameter_by_name(named_parameter.as_str())
+                let param = fxt_write.get_parameter_by_name(named_parameter.as_str())
                     .ok_or_else(|| anyhow!("Parameter {} not found", named_parameter))?;
-
-
 
                 *param = parameter_value::ParameterValue::Number(
                     paket.iter().map(|n| *n).collect()

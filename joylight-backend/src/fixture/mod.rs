@@ -6,6 +6,7 @@ pub mod selection;
 use crate::fixture::fixture_template::FixtureTemplate;
 use crate::parameter::parameter_value::ParameterValue;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
@@ -15,6 +16,7 @@ use std::sync::{Arc, RwLock};
 #[derive(Debug)]
 pub struct Fixture {
     pub name: String,
+    pub uuid: Uuid,
     pub template: FixtureTemplate,
     /// A vector of parameters, each associated to the [ParameterType] of the [FixtureTemplate]
     pub parameters: Vec<ParameterValue>,
@@ -34,6 +36,7 @@ impl Fixture {
 
         Fixture {
             name: name.to_string(),
+            uuid: Uuid::new_v4(),
             template: template.clone(),
             parameters,
         }

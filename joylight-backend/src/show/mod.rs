@@ -1,6 +1,9 @@
 //! The show contains all information about the current state of the application, including
 //! fixtures, programs, effects and other options.
 
+pub mod layer;
+pub use layer::*;
+
 use crate::fixture::FixtureRef;
 use std::{collections::HashMap, error::Error};
 use crate::fixture::selection::Selection;

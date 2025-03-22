@@ -6,6 +6,7 @@ use std::sync::RwLock;
 use anyhow::Context;
 use anyhow::{anyhow, Result};
 use log::{debug, info};
+use smallvec::smallvec;
 use smallvec::SmallVec;
 
 use crate::effects::io::NodeDataset;
@@ -196,7 +197,7 @@ impl<'a> EffectGraph<'a> {
                                     from_node.current_value.packets.len()
                                 )).cloned()
                         }
-                        None => Ok(None),
+                        None => Ok(smallvec![]),
                     }
                 })
                 .collect::<Result<SmallVec<_>>>()
