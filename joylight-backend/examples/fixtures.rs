@@ -5,6 +5,8 @@ use joylight_backend::parameter::parameter_type::ParameterType;
 use joylight_backend::parameter::parameter_value::ParameterValue;
 use joylight_backend::parameter::parameter_view;
 use joylight_backend::parameter::parameter_dmx;
+use joylight_backend::show::*;
+use std::sync::{Arc, RwLock};
 
 fn main() {
     setup_logger();
@@ -188,4 +190,24 @@ fn main() {
 
     //     server.send(json_str.as_str(), 0).unwrap();
     // }
+
+    let arc_fixture = Arc::new(RwLock::new(three_fixture));
+    
+    let mut layer1 = Layer::new("Layer 1", BlendingMode::Highest, 1);
+    let mut layer2 = Layer::new("Layer 1", BlendingMode::Highest, 1);
+
+    layer1.set_value(arc_fixture.clone(), 0, ParameterValue::Number(vec![0.5]));
+    layer1.set_value(arc_fixture.clone(), 1, ParameterValue::Number(vec![0.5]));
+
+    layer2.set_value(arc_fixture.clone(), 0, ParameterValue::Number(vec![0.75]));
+    layer2.set_value(arc_fixture.clone(), 1, ParameterValue::Number(vec![0.75]));
+
+    let mut show = Show::default();
+    show.add_fixture(arc_fixture);
+    show.add_layer(layer1);
+    show.add_layer(layer2);
+
+    show.eval_layers();
+
+    println!("{:#?}", show);
 }

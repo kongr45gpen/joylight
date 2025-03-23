@@ -115,3 +115,18 @@ impl Selection for UnionSelection {
         unimplemented!()
     }
 }
+
+#[derive(Debug)]
+pub struct DummySelection {}
+
+impl Selection for DummySelection {
+    fn name(&self) -> &str {
+        "Dummy Selection"
+    }
+
+    fn fixtures(&self) -> &Vec<FixtureRef> {
+        unimplemented!()
+    }
+
+    fn update(&mut self, _: &Show) {}
+}

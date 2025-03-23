@@ -7,14 +7,17 @@ pub use layer::*;
 use crate::fixture::FixtureRef;
 use std::{collections::HashMap, error::Error};
 use crate::fixture::selection::Selection;
+use crate::parameter::parameter_value::ParameterValue;
 use std::sync::{Arc,Weak,RwLock};
 use log::*;
 
+#[derive(Debug)]
 pub struct Show {
     /// The fixtures that are currently in the show
     pub fixtures: HashMap<String, FixtureRef>,
     /// Weak pointers to active selections that should be updated when necessary
     selections: Vec<Weak<RwLock<dyn Selection>>>,
+    layers: Vec<Layer>,
 }
 
 impl Default for Show {
@@ -22,6 +25,7 @@ impl Default for Show {
         Show {
             fixtures: HashMap::new(),
             selections: Vec::new(),
+            layers: Vec::new(),
         }
     }
 }
@@ -36,6 +40,7 @@ impl Show {
         self.selections.push(Arc::downgrade(&selection));
     }
 
+    /// Callback to refresh fixtures in selections
     pub fn refresh_fixtures(&mut self) {
         for selection in self.selections.iter().map(|weak| weak.upgrade()).flatten() {
             let guard = selection.write();
@@ -49,5 +54,43 @@ impl Show {
         // Remove dangling selections (garbage collect...)
         // This may not be the fastest way but it is fully safe
         self.selections.retain(|weak| weak.strong_count() > 0);
+    }
+
+    pub fn add_layer(&mut self, layer: Layer) {
+        self.layers.push(layer);
+    }
+
+    /// Evaluate current values of parameter layers
+    /// 
+    /// TODO: This creates and fills a new map for every iteration. This state can be stored and somewhat optimised.
+    pub fn eval_layers(&self) {
+        let mut parameters: HashMap<FixtureParameterPair, Vec<(&Layer,&ParameterValue)>> = HashMap::new();
+
+        // Load active parameter values into map
+        for layer in self.layers.iter() {
+            if !layer.active {
+                continue;
+            }
+
+            for (pair, value) in layer.parameters.iter() {
+                parameters.entry(pair.clone()).or_insert(vec![]).push((layer, value));
+            }
+        }
+
+        // Apply parameters to fixture
+        // TODO: Blending modes/priorities
+        // TODO: Make sure that the parameter value is the same type or convertible..
+        for (pair, values) in parameters.iter() {
+            let mut fixture = pair.fixture.write().unwrap();
+
+            for (layer, value) in values {
+                let param = fixture.parameters.get_mut(pair.parameter);
+                if let Some(param) = param {
+                    *param = (*value).clone();
+                } else {
+                    error!("Parameter {} not found in fixture {}", pair.parameter, fixture.name);
+                }
+            }
+        }
     }
 }
