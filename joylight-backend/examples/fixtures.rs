@@ -1,3 +1,6 @@
+use joylight_backend::colors::{blue, green, red};
+use joylight_backend::parameter::parameter_value::ColorBasedOnComponents;
+use joylight_backend::parameter::parameter_value::ParameterDescription;
 use joylight_backend::setup_logger;
 use joylight_backend::fixture::Fixture;
 use joylight_backend::fixture::fixture_template::FixtureTemplate;
@@ -21,6 +24,7 @@ fn main() {
             size: 1,
             endianness: parameter_dmx::Endianness::Big,
         }),
+        ParameterDescription::Number(1),
         ParameterValue::Number(vec![0.0]),
         None,
     );
@@ -34,6 +38,10 @@ fn main() {
             input_max: 255.0,
             size: 1,
             endianness: parameter_dmx::Endianness::Big,
+        }),
+        ParameterDescription::ColorBasedOnComponents(ColorBasedOnComponents{
+            components: vec![red(), green(), blue()],
+            subtractive: false,
         }),
         ParameterValue::Number(vec![255.0, 255.0, 255.0]),
         None,
@@ -53,16 +61,16 @@ fn main() {
 
     println!("{:?}", three_fixture);
 
-    three_fixture_template.parameters[0].view.to_value(
-        vec![parameter_view::ViewValue::F64(50.0)],
-        &mut three_fixture.parameters[0],
-    );
-    println!(
-        "{:?}",
-        three_fixture_template.parameters[0]
-            .view
-            .from_value(&three_fixture.parameters[0])
-    );
+    // three_fixture_template.parameters[0].view.to_value(
+    //     vec![parameter_view::ViewValue::F64(50.0)],
+    //     &mut three_fixture.get_parameter_by_number(0).unwrap(),
+    // );
+    // println!(
+    //     "{:?}",
+    //     three_fixture_template.parameters[0]
+    //         .view
+    //         .from_value(&three_fixture.get_parameter_by_number(0).unwrap())
+    // );
 
     // let mut fixture1 = fixture::Fixture {
     //     name: "fixture1".to_string(),

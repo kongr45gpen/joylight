@@ -5,13 +5,13 @@
 //! internally, and what the fixture receives, we use an MVC-like pattern to allow flexibility in representing parameters.
 //! 
 //! ```text
-//! /-------------------\     /-------------------\     /-------------------\
-//! |   Parameter View  |     |                   |     | Parameter Encoder |
-//! |     describes     |     |     Parameter     |     |     describes     |
-//! |-------------------|     |       Value       |     |-------------------|
-//! |     View Value    |     |                   |     |   Encoded Value   |
-//! \-------------------/     \-------------------/     \-------------------/
-//!           \-------------------------|-------------------------/
+//! /-------------------\     /-----------------------\     /-------------------\
+//! |   Parameter View  |     | Parameter Description |     | Parameter Encoder |
+//! |     describes     |     |       describes       |     |     describes     |
+//! |-------------------|     |-----------------------|     |-------------------|
+//! |     View Value    |     |    Parameter Value    |     |   Encoded Value   |
+//! \-------------------/     \-----------------------/     \-------------------/
+//!           \---------------------------|---------------------------/
 //!                          Linked by Parameter Type
 //! ```
 //! 

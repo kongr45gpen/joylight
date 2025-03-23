@@ -2,6 +2,7 @@
 //! fixtures, programs, effects and other options.
 
 pub mod layer;
+use anyhow::Context;
 pub use layer::*;
 
 use crate::fixture::FixtureRef;
@@ -84,12 +85,9 @@ impl Show {
             let mut fixture = pair.fixture.write().unwrap();
 
             for (layer, value) in values {
-                let param = fixture.parameters.get_mut(pair.parameter);
-                if let Some(param) = param {
-                    *param = (*value).clone();
-                } else {
-                    error!("Parameter {} not found in fixture {}", pair.parameter, fixture.name);
-                }
+                fixture.set_parameter(pair.parameter, (*value).clone())
+                    .with_context(|| format!("Layer {} setting parameter {} of {}", layer.name, pair.parameter, fixture.name))
+                    .map_err(|e| error!("Error setting parameter: {}", e));
             }
         }
     }

@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::fmt::Debug;
 
+use super::parameter_value::ParameterDescription;
+
 /// Representation of a Parameter Type of a fixture.
 ///
 /// A parameter represents any property of a fixture that can be controlled in real time, such
@@ -24,8 +26,9 @@ pub struct ParameterType {
     pub view: Box<dyn ParameterView>,
     /// Encoding (e.g. DMX) details
     pub encoding: Box<dyn ParameterEncoder>,
+    /// The description of the parameter
+    pub description: ParameterDescription,
     /// Default value of the parameter on fixture initialisation.
-    /// This basically also defines the type of the value itself.
     pub default_value: ParameterValue,
     /// Optional text comments/description shown to the user
     pub comments: Option<String>,
@@ -33,11 +36,13 @@ pub struct ParameterType {
 
 impl ParameterType {
     /// Create a new parameter type
+    /// TODO: Check that [default_value] fits [description]
     pub fn new(
         alias: &str,
         display_name: &str,
         view: Box<dyn ParameterView>,
         encoding: Box<dyn ParameterEncoder>,
+        description: ParameterDescription,
         default_value: ParameterValue,
         comments: Option<String>,
     ) -> Self {
@@ -46,6 +51,7 @@ impl ParameterType {
             display_name: display_name.to_string(),
             view,
             encoding,
+            description,
             default_value,
             comments,
         }
@@ -65,6 +71,7 @@ impl Clone for ParameterType {
             display_name: self.display_name.clone(),
             view: dyn_clone::clone_box(&*self.view),
             encoding: dyn_clone::clone_box(&*self.encoding),
+            description: self.description.clone(),
             default_value: self.default_value.clone(),
             comments: self.comments.clone(),
         }

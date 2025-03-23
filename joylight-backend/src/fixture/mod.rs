@@ -3,6 +3,7 @@
 pub mod fixture_template;
 pub mod selection;
 
+use anyhow::{anyhow, Context, Result};
 use crate::fixture::fixture_template::FixtureTemplate;
 use crate::parameter::parameter_value::ParameterValue;
 use serde::{Deserialize, Serialize};
@@ -19,7 +20,7 @@ pub struct Fixture {
     pub uuid: Uuid,
     pub template: FixtureTemplate,
     /// A vector of parameters, each associated to the [ParameterType] of the [FixtureTemplate]
-    pub parameters: Vec<ParameterValue>,
+    parameters: Vec<ParameterValue>,
 }
 
 /// Thread-safe reference to a fixture, to be passed around
@@ -42,12 +43,32 @@ impl Fixture {
         }
     }
 
-    pub fn get_parameter_by_name(&mut self, name: &str) -> Option<&mut ParameterValue> {
+    pub fn get_parameter_by_name(&self, name: &str) -> Option<usize> {
         self.template
             .parameters
             .iter()
-            .zip(self.parameters.iter_mut())
+            .zip(self.parameters.iter())
             .find(|(parameter_type, _)| parameter_type.alias == name)
-            .map(|(_, value)| value)
+            .iter().enumerate().next().map(|(index, _)| index)
+            // .map(|(index, _)| index)
+    }
+
+    pub fn get_parameter_by_number(&self, index: usize) -> Option<&ParameterValue> {
+        self.parameters.get(index)
+    }
+
+    pub fn get_parameter_values(&self) -> &Vec<ParameterValue> {
+        self.parameters.as_ref()
+    }
+
+    pub fn set_parameter(&mut self, index: usize, value: ParameterValue) -> Result<()> {
+        let parameter = self.parameters.get_mut(index)
+            .ok_or_else(|| anyhow!("Parameter index out of bounds"))?;
+
+        let parameter_type = self.template.parameters.get(index)
+            .ok_or_else(|| anyhow!("Parameter type index out of bounds"))?;
+
+        parameter_type.description.set_value(parameter, value)
+            .with_context(|| format!("Setting parameter {} of {}", index, self.name))
     }
 }

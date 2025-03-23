@@ -93,6 +93,7 @@ fn main() {
                 size: 1,
                 endianness: joylight_backend::parameter::parameter_dmx::Endianness::Big,
             }),
+            joylight_backend::parameter::parameter_value::ParameterDescription::Number(1),
             joylight_backend::parameter::parameter_value::ParameterValue::Number(vec![0.0]),
             None,
         );
@@ -128,7 +129,7 @@ fn main() {
         let node2 = graph.add_node(output.build("output"));
         link(&node1, &node2, 0);
 
-        let dbg = || { info!("Fixture brightnesses: {:?}", show.fixtures.iter().map(|f| f.1.read().unwrap().parameters.clone()).collect::<Vec<_>>()) };
+        let dbg = || { info!("Fixture brightnesses: {:?}", show.fixtures.iter().map(|f| f.1.read().unwrap().get_parameter_values().clone()).collect::<Vec<_>>()) };
 
         dbg();
         for _ in 0..2 {

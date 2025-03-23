@@ -1,5 +1,6 @@
 use std::{fmt::format, sync::{Arc, RwLock}};
 use crate::{effects::{io::{packet_to_f64, NodeDataset}, node::{EffectNodeDefinition, NodeType}}, fixture::selection::Selection, parameter::{self, parameter_value}};
+use chumsky::debug;
 use log::*;
 use anyhow::anyhow;
 
@@ -25,9 +26,11 @@ pub fn output(named_parameter: &str, selection: Arc<RwLock<dyn Selection>>) -> E
                 let param = fxt_write.get_parameter_by_name(named_parameter.as_str())
                     .ok_or_else(|| anyhow!("Parameter {} not found", named_parameter))?;
 
-                *param = parameter_value::ParameterValue::Number(
-                    paket.iter().map(|n| *n).collect()
-                );
+                //TODO: Implement layer
+                debug!("Found parameter {:?} corresponding to name {}", param, named_parameter);
+
+                fxt_write.set_parameter(param, parameter_value::ParameterValue::Number(paket.iter().map(|n| *n).collect()))
+                    .unwrap();
             }
 
             Ok(Default::default())
