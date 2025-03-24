@@ -1,8 +1,6 @@
 //! Generic descriptions of parameters corresponding to a fixture
 
-use crate::parameter::{
-    parameter_dmx::ParameterEncoder, parameter_value::ParameterValue, parameter_view::ParameterView,
-};
+use crate::parameter::{ParameterEncoder, ParameterValue, ParameterView};
 use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::fmt::Debug;
@@ -36,7 +34,7 @@ pub struct ParameterType {
 
 impl ParameterType {
     /// Create a new parameter type
-    /// TODO: Check that [default_value] fits [description]
+    /// TODO: Check that `default_value`` fits `description``
     pub fn new(
         alias: &str,
         display_name: &str,

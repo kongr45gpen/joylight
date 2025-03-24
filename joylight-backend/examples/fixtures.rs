@@ -7,7 +7,7 @@ use joylight_backend::fixture::fixture_template::FixtureTemplate;
 use joylight_backend::parameter::parameter_type::ParameterType;
 use joylight_backend::parameter::parameter_value::ParameterValue;
 use joylight_backend::parameter::parameter_view;
-use joylight_backend::parameter::parameter_dmx;
+use joylight_backend::parameter::parameter_encoding;
 use joylight_backend::show::*;
 use std::sync::{Arc, RwLock};
 
@@ -18,11 +18,11 @@ fn main() {
         "brightness",
         "Brightness",
         Box::new(parameter_view::percentage()),
-        Box::new(parameter_dmx::DMXMappingTransformer {
+        Box::new(parameter_encoding::DMXMappingTransformer {
             input_min: 0.0,
             input_max: 100.0,
             size: 1,
-            endianness: parameter_dmx::Endianness::Big,
+            endianness: parameter_encoding::Endianness::Big,
         }),
         ParameterDescription::Number(1),
         ParameterValue::Number(vec![0.0]),
@@ -33,11 +33,11 @@ fn main() {
         "color_rgb",
         "RGB Color",
         Box::new(parameter_view::rgb()),
-        Box::new(parameter_dmx::DMXMappingTransformer {
+        Box::new(parameter_encoding::DMXMappingTransformer {
             input_min: 0.0,
             input_max: 255.0,
             size: 1,
-            endianness: parameter_dmx::Endianness::Big,
+            endianness: parameter_encoding::Endianness::Big,
         }),
         ParameterDescription::ColorBasedOnComponents(ColorBasedOnComponents{
             components: vec![red(), green(), blue()],
@@ -57,7 +57,7 @@ fn main() {
         ],
     };
 
-    let mut three_fixture = Fixture::new("BabisOFlou", &three_fixture_template);
+    let three_fixture = Fixture::new("BabisOFlou", &three_fixture_template);
 
     println!("{:?}", three_fixture);
 

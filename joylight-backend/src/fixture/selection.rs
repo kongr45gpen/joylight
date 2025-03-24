@@ -6,12 +6,24 @@ use crate::show::Show;
 
 use super::Fixture;
 
+/// A selection describes a user-defined set of fixtures. It may be a fixed group of fixtures,
+/// or updated dynamically based on some filter. For example, you can match fixtures of a
+/// certain brand or with a certain name.
+/// 
+/// Selections are used to define fixture groups, to define event outputs, and wherever else
+/// a dynamic set of fixtures is needed.
 pub trait Selection {
     fn name(&self) -> &str;
+
+    /// Get the list of fixtures represented by this selection. This may be outdated if
+    /// [Selection::update] is not called after a fixture change.
     fn fixtures(&self) -> &Vec<FixtureRef>;
+
+    /// Update the list of fixtures stored internally. Called when fixtures change.
     fn update(&mut self, show: &Show);
 }
 
+/// A selection where the list of fixtures is predefined
 pub struct StrictSelection {
     pub name: String,
     pub fixtures: Vec<FixtureRef>,
@@ -29,11 +41,13 @@ impl Selection for StrictSelection {
     fn update(&mut self, _: &Show) {}
 }
 
+/// A recursive filter for fixtures
 pub enum Filter {
     All,
     Not(Box<Filter>),
     And(Vec<Filter>),
     Or(Vec<Filter>),
+    /// A function that returns `true` if a fixture should be included in a given selection
     Predicate(Box<dyn Fn(&FixtureRef) -> bool>),
 }
 
@@ -49,6 +63,8 @@ impl Filter {
     }
 }
 
+/// A selection where the list of fixtures is defined by a filter (or a combination of filters) and
+/// evaluated dynamically
 pub struct FilteredSelection {
     pub name: String,
     pub filter: Filter,
@@ -82,6 +98,7 @@ impl Selection for FilteredSelection {
     }
 }
 
+/// A selection which is a combination of one or more other selections
 pub struct UnionSelection {
     pub name: String,
     pub selections: Vec<Weak<RwLock<dyn Selection>>>,
@@ -116,8 +133,9 @@ impl Selection for UnionSelection {
     }
 }
 
+/// Used for debugging, this selection will throw an error when used
 #[derive(Debug)]
-pub struct DummySelection {}
+pub(crate) struct DummySelection {}
 
 impl Selection for DummySelection {
     fn name(&self) -> &str {

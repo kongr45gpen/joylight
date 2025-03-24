@@ -87,11 +87,11 @@ fn main() {
             "brightness",
             "Brightness",
             Box::new(joylight_backend::parameter::parameter_view::percentage()),
-            Box::new(joylight_backend::parameter::parameter_dmx::DMXMappingTransformer {
+            Box::new(joylight_backend::parameter::parameter_encoding::DMXMappingTransformer {
                 input_min: 0.0,
                 input_max: 100.0,
                 size: 1,
-                endianness: joylight_backend::parameter::parameter_dmx::Endianness::Big,
+                endianness: joylight_backend::parameter::parameter_encoding::Endianness::Big,
             }),
             joylight_backend::parameter::parameter_value::ParameterDescription::Number(1),
             joylight_backend::parameter::parameter_value::ParameterValue::Number(vec![0.0]),

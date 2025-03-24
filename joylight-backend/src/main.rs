@@ -18,7 +18,6 @@ use effects::{io::NodeDataset, node::NodeParameterValue};
 use fixture::fixture_template::FixtureTemplate;
 use fixture::Fixture;
 use log::{debug, error, info, trace, warn};
-use parameter::parameter_dmx;
 use parameter::parameter_type::ParameterType;
 use parameter::parameter_value::ParameterValue;
 use parameter::parameter_view;

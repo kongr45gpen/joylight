@@ -28,22 +28,26 @@
 //! Let's take the color of a CMY (Cyan, Magenta, Yellow) fixture as an example.
 //! 
 //! The user manual will describe the selected DMX channel assignment. For example, fixtures with fine control will assign 2 DMX channels
-//! to each color. Therefore, our [ParameterEncoder](parameter_dmx::ParameterEncoder) will be a
-//! [DMXMappingTransformer](parameter_dmx::DMXMappingTransformer) with `size = 2`.
+//! to each color. Therefore, our [ParameterEncoder] will be a [DMXMappingTransformer] with `size = 2`.
 //! 
 //! As mentioned above, the most convenient way to store the value internally is to have it correspond to the actual fixture state.
-//! In this case, we can store 3 floating-point numbers, ranging from `0` to `1`, in a [ParameterValue](parameter_value::ParameterValue).
-//! [ParameterValue](parameter_value::ParameterValue) is an enum with different options, such as [Number](parameter_value::ParameterValue::Number)
+//! In this case, we can store 3 floating-point numbers, ranging from `0` to `1`, in a [ParameterValue].
+//! [ParameterValue] is an enum with different options, such as [Number](parameter_value::ParameterValue::Number)
 //! or [Integer](parameter_value::ParameterValue::Integer), but the most suitable one for our situation is
-//! [ColorBasedOnComponents](parameter_value::ColorBasedOnComponents). In our example we have 3 components (C, M, Y), and we must not forget to set
+//! [ColorBasedOnComponents]. In our example we have 3 components (C, M, Y), and we must not forget to set
 //! `subtractive = true` to select the proper color mixing method.
 //! 
 //! The users of the tool might be more familiar with the RGB model, or may want to use predefined hex-codes that need to be converted
-//! to CMY. This is where a carefully selected [ParameterView](parameter_view::ParameterView) will come in handy.
-//! [parameter_view::rgb] will return a [ColorComponentView](parameter_view::ColorComponentView) that describes the RGB representation,
+//! to CMY. This is where a carefully selected [ParameterView] will come in handy.
+//! [parameter_view::rgb] will return a [ColorComponentView] that describes the RGB representation,
 //! and provides the necessary functions to convert to and from CMY.
 
-pub mod parameter_dmx;
+pub mod parameter_encoding;
 pub mod parameter_type;
 pub mod parameter_value;
 pub mod parameter_view;
+
+pub use parameter_encoding::*;
+pub use parameter_type::*;
+pub use parameter_value::*;
+pub use parameter_view::*;

@@ -17,7 +17,7 @@ pub fn output(named_parameter: &str, selection: Arc<RwLock<dyn Selection>>) -> E
 
             let selection = selection.read().unwrap();
 
-            let paket = packet_to_f64(&inputs.packets.first().unwrap())?;
+            let paket = packet_to_f64(inputs.packets.first().unwrap())?;
 
             for fixture in selection.fixtures() {
                 debug!("iterating over fixture {} for parameter {}",  fixture.read().unwrap().name, named_parameter);
@@ -29,7 +29,7 @@ pub fn output(named_parameter: &str, selection: Arc<RwLock<dyn Selection>>) -> E
                 //TODO: Implement layer
                 debug!("Found parameter {:?} corresponding to name {}", param, named_parameter);
 
-                fxt_write.set_parameter(param, parameter_value::ParameterValue::Number(paket.iter().map(|n| *n).collect()))
+                fxt_write.set_parameter(param, parameter_value::ParameterValue::Number(paket.iter().copied().collect()))
                     .unwrap();
             }
 
