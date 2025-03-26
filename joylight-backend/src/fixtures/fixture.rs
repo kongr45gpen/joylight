@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
-use crate::fixture::fixture_template::FixtureTemplate;
-use crate::parameter::parameter_value::ParameterValue;
+use crate::fixtures::fixture_template::FixtureTemplate;
+use crate::parameters::parameter_value::ParameterValue;
 use crate::utils::{SmartRef, WithUuid};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

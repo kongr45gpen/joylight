@@ -8,7 +8,7 @@ use std::{
     ops::{Mul, Sub},
 };
 
-use crate::parameter::parameter_value::ParameterValue;
+use crate::parameters::parameter_value::ParameterValue;
 
 /// Maps a number from an input to an output range
 ///

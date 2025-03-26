@@ -1,15 +1,14 @@
 use joylight_backend::colors::{blue, green, red};
-use joylight_backend::parameter::parameter_value::ColorBasedOnComponents;
-use joylight_backend::parameter::parameter_value::ParameterDescription;
+use joylight_backend::parameters::parameter_value::ColorBasedOnComponents;
+use joylight_backend::parameters::parameter_value::ParameterDescription;
 use joylight_backend::setup_logger;
-use joylight_backend::fixture::{Fixture, FixtureRef};
-use joylight_backend::fixture::fixture_template::FixtureTemplate;
-use joylight_backend::parameter::parameter_type::ParameterType;
-use joylight_backend::parameter::parameter_value::ParameterValue;
-use joylight_backend::parameter::parameter_view;
-use joylight_backend::parameter::parameter_encoding;
+use joylight_backend::fixtures::{Fixture, FixtureRef};
+use joylight_backend::fixtures::fixture_template::FixtureTemplate;
+use joylight_backend::parameters::parameter_type::ParameterType;
+use joylight_backend::parameters::parameter_value::ParameterValue;
+use joylight_backend::parameters::parameter_view;
+use joylight_backend::parameters::parameter_encoding;
 use joylight_backend::show::*;
-use std::sync::{Arc, RwLock};
 
 fn main() {
     setup_logger();

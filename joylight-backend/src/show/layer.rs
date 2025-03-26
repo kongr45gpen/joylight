@@ -1,7 +1,7 @@
 use std::{collections::{BTreeMap, HashMap}, sync::{Arc, RwLock}};
 use std::hash::{Hash, Hasher};
 use std::fmt::Debug;
-use crate::{fixture::{selection::{DummySelection, Selection, StrictSelection}, Fixture, FixtureRef}, parameter::parameter_value::ParameterValue};
+use crate::{fixtures::{selection::{DummySelection, Selection, StrictSelection}, Fixture, FixtureRef}, parameters::parameter_value::ParameterValue};
 
 /// A blending mode, assigned to each layer, defines how multiple layers changing the same parameter are resolved
 #[derive(Debug, Clone)]
@@ -21,25 +21,10 @@ pub enum BlendingMode {
     MultiplyOverride
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub(super) struct FixtureParameterPair {
     pub fixture: FixtureRef,
     pub parameter: usize,
-}
-
-impl PartialEq for FixtureParameterPair {
-    fn eq(&self, other: &Self) -> bool {
-        self.fixture.uuid() == other.fixture.uuid() && self.parameter == other.parameter
-    }
-}
-
-impl Eq for FixtureParameterPair {}
-
-impl Hash for FixtureParameterPair {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.fixture.uuid().hash(state);
-        self.parameter.hash(state);
-    }
 }
 
 impl Debug for FixtureParameterPair {

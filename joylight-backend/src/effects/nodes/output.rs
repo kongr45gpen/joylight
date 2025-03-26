@@ -1,5 +1,5 @@
 use std::{fmt::format, sync::{Arc, RwLock}};
-use crate::{effects::{io::{packet_to_f64, NodeDataset}, node::{EffectNodeDefinition, NodeType}}, fixture::selection::Selection, parameter::{self, parameter_value}};
+use crate::{effects::{io::{packet_to_f64, NodeDataset}, node::{EffectNodeDefinition, NodeType}}, fixtures::Selection, parameters::{self, parameter_value}};
 use chumsky::debug;
 use log::*;
 use anyhow::{anyhow, Context};

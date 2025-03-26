@@ -1,6 +1,6 @@
 //! Lighting fixture templates
 
-use crate::parameter::parameter_type::ParameterType;
+use crate::parameters::parameter_type::ParameterType;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Debug;

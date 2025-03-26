@@ -1,8 +1,8 @@
 use anyhow::Context;
-use crate::fixture::FixtureRef;
+use crate::fixtures::FixtureRef;
 use std::{collections::HashMap, error::Error};
-use crate::fixture::selection::Selection;
-use crate::parameter::parameter_value::ParameterValue;
+use crate::fixtures::selection::Selection;
+use crate::parameters::parameter_value::ParameterValue;
 use std::sync::{Arc,Weak,RwLock};
 use log::*;
 use super::layer::*;

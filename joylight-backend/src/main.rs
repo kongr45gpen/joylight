@@ -5,8 +5,8 @@
 
 mod colors;
 mod effects;
-mod fixture;
-mod parameter;
+mod fixtures;
+mod parameters;
 mod show;
 mod utils;
 
@@ -16,12 +16,11 @@ use std::collections::BTreeMap;
 
 use joylight_backend::setup_logger;
 use effects::{io::NodeDataset, node::NodeParameterValue};
-use fixture::fixture_template::FixtureTemplate;
-use fixture::Fixture;
+use fixtures::{FixtureTemplate, Fixture};
 use log::{debug, error, info, trace, warn};
-use parameter::parameter_type::ParameterType;
-use parameter::parameter_value::ParameterValue;
-use parameter::parameter_view;
+use parameters::parameter_type::ParameterType;
+use parameters::parameter_value::ParameterValue;
+use parameters::parameter_view;
 
 use serde_json::json;
 

@@ -15,5 +15,5 @@ pub use fixture::*;
 pub use fixture_template::*;
 pub use selection::*;
 
-use crate::parameter::{ParameterType,ParameterValue};
+use crate::parameters::{ParameterType,ParameterValue};
 use crate::show::Show;

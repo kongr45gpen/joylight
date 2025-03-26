@@ -1,7 +1,7 @@
 use std::collections::{BTreeSet, HashSet};
 use std::sync::{Arc, RwLock, Weak};
 
-use crate::fixture::FixtureRef;
+use crate::fixtures::FixtureRef;
 use crate::show::Show;
 
 use super::Fixture;

@@ -3,7 +3,7 @@
 use crate::{
     colors,
     colors::{ColorModel, RGBTuple},
-    parameter::parameter_value::ParameterValue,
+    parameters::parameter_value::ParameterValue,
 };
 use dyn_clone::DynClone;
 use serde::{Deserialize, Serialize};

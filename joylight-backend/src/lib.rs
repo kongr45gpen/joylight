@@ -5,8 +5,8 @@
 
 pub mod colors;
 pub mod effects;
-pub mod fixture;
-pub mod parameter;
+pub mod fixtures;
+pub mod parameters;
 pub mod show;
 mod utils;
 

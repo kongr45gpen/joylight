@@ -1,6 +1,6 @@
 use crate::effects::io::{packet_to_f64, NodeDataset};
 use crate::effects::node::{EffectNodeDefinition, NodeType};
-use crate::parameter::parameter_view::{ViewValue, ViewValuePacket};
+use crate::parameters::parameter_view::{ViewValue, ViewValuePacket};
 use anyhow::{anyhow, Result};
 use rand::Rng;
 use serde::de;

@@ -1,6 +1,6 @@
 //! Generic descriptions of parameters corresponding to a fixture
 
-use crate::parameter::{ParameterEncoder, ParameterValue, ParameterView};
+use crate::parameters::{ParameterEncoder, ParameterValue, ParameterView};
 use serde::{Deserialize, Serialize};
 use std::any::{Any, TypeId};
 use std::fmt::Debug;

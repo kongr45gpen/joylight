@@ -2,7 +2,7 @@ use smallvec::SmallVec;
 use std::fmt::Debug;
 use anyhow::{anyhow, Context, Result};
 
-use crate::parameter::parameter_view::{ViewValue, ViewValuePacket};
+use crate::parameters::parameter_view::{ViewValue, ViewValuePacket};
 
 /// A node may have multiple inputs and outputs that may themselves be vectors.
 /// A "dataset" represents all the set of [ViewValuePacket]s that are input or output by the node.

@@ -1,7 +1,7 @@
 use joylight_backend::effects::node::link;
 use joylight_backend::effects::nodes::output::output;
-use joylight_backend::fixture::{Filter,FixtureRef};
-use joylight_backend::parameter::parameter_view::ViewValue;
+use joylight_backend::fixtures::{Filter,FixtureRef};
+use joylight_backend::parameters::parameter_view::ViewValue;
 use joylight_backend::effects;
 use joylight_backend::effects::io::NodeDataset;
 use joylight_backend::setup_logger;
@@ -83,38 +83,38 @@ fn main() {
     {
         println!("Node processing test 4");
 
-        let brightness = joylight_backend::parameter::parameter_type::ParameterType::new(
+        let brightness = joylight_backend::parameters::parameter_type::ParameterType::new(
             "brightness",
             "Brightness",
-            Box::new(joylight_backend::parameter::parameter_view::percentage()),
-            Box::new(joylight_backend::parameter::parameter_encoding::DMXMappingTransformer {
+            Box::new(joylight_backend::parameters::parameter_view::percentage()),
+            Box::new(joylight_backend::parameters::parameter_encoding::DMXMappingTransformer {
                 input_min: 0.0,
                 input_max: 100.0,
                 size: 1,
-                endianness: joylight_backend::parameter::parameter_encoding::Endianness::Big,
+                endianness: joylight_backend::parameters::parameter_encoding::Endianness::Big,
             }),
-            joylight_backend::parameter::parameter_value::ParameterDescription::Number(1),
-            joylight_backend::parameter::parameter_value::ParameterValue::Number(vec![0.0]),
+            joylight_backend::parameters::parameter_value::ParameterDescription::Number(1),
+            joylight_backend::parameters::parameter_value::ParameterValue::Number(vec![0.0]),
             None,
         );
 
-        let fixtemp = joylight_backend::fixture::fixture_template::FixtureTemplate {
+        let fixtemp = joylight_backend::fixtures::fixture_template::FixtureTemplate {
             name: "Dimmer".to_string(),
             parameters: vec![
                 brightness.clone(),
             ],
         };
 
-        let fixture1 = FixtureRef::new_from_move(joylight_backend::fixture::Fixture::new("Dimmer1", &fixtemp));
-        let fixture2 = FixtureRef::new_from_move(joylight_backend::fixture::Fixture::new("Dimmer2", &fixtemp));
-        let fixture3 = FixtureRef::new_from_move(joylight_backend::fixture::Fixture::new("Dimmer3", &fixtemp));
+        let fixture1 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer1", &fixtemp));
+        let fixture2 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer2", &fixtemp));
+        let fixture3 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer3", &fixtemp));
 
         let mut show= Show::default();
         show.add_fixture(fixture1);
         show.add_fixture(fixture2);
         show.add_fixture(fixture3);
 
-        let selection = Arc::new(RwLock::new(joylight_backend::fixture::selection::FilteredSelection::new(
+        let selection = Arc::new(RwLock::new(joylight_backend::fixtures::selection::FilteredSelection::new(
             "all",
             Filter::Predicate(Box::new(|f| f.read(|f| f.name == "Dimmer2").unwrap_or(false)))),
         ));
