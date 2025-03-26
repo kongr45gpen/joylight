@@ -23,14 +23,13 @@ pub enum BlendingMode {
 
 #[derive(Clone)]
 pub(super) struct FixtureParameterPair {
-    pub fixture_uuid: uuid::Uuid,
-    pub fixture: Arc<RwLock<Fixture>>,
+    pub fixture: FixtureRef,
     pub parameter: usize,
 }
 
 impl PartialEq for FixtureParameterPair {
     fn eq(&self, other: &Self) -> bool {
-        self.fixture_uuid == other.fixture_uuid && self.parameter == other.parameter
+        self.fixture.uuid() == other.fixture.uuid() && self.parameter == other.parameter
     }
 }
 
@@ -38,14 +37,14 @@ impl Eq for FixtureParameterPair {}
 
 impl Hash for FixtureParameterPair {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.fixture_uuid.hash(state);
+        self.fixture.uuid().hash(state);
         self.parameter.hash(state);
     }
 }
 
 impl Debug for FixtureParameterPair {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FixtureParameterPair {{ fixture_uuid: {}, parameter: {} }}", self.fixture_uuid, self.parameter)
+        write!(f, "FixtureParameterPair {{ fixture_uuid: {}, parameter: {} }}", self.fixture.uuid(), self.parameter)
     }
 }
 
@@ -88,9 +87,7 @@ impl Layer {
 
     /// Set the value of a parameter for a fixture
     pub fn set_value(&mut self, fixture: FixtureRef, parameter: usize, value: ParameterValue) {
-        let uuid = fixture.read().unwrap().uuid;
         let pair = FixtureParameterPair {
-            fixture_uuid: uuid,
             fixture: fixture.clone(),
             parameter,
         };

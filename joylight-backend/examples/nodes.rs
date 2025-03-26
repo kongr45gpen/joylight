@@ -1,6 +1,6 @@
 use joylight_backend::effects::node::link;
 use joylight_backend::effects::nodes::output::output;
-use joylight_backend::fixture::selection::Filter;
+use joylight_backend::fixture::{Filter,FixtureRef};
 use joylight_backend::parameter::parameter_view::ViewValue;
 use joylight_backend::effects;
 use joylight_backend::effects::io::NodeDataset;
@@ -105,9 +105,9 @@ fn main() {
             ],
         };
 
-        let fixture1 = Arc::new(RwLock::new(joylight_backend::fixture::Fixture::new("Dimmer1", &fixtemp)));
-        let fixture2 = Arc::new(RwLock::new(joylight_backend::fixture::Fixture::new("Dimmer2", &fixtemp)));
-        let fixture3 = Arc::new(RwLock::new(joylight_backend::fixture::Fixture::new("Dimmer3", &fixtemp)));
+        let fixture1 = FixtureRef::new_from_move(joylight_backend::fixture::Fixture::new("Dimmer1", &fixtemp));
+        let fixture2 = FixtureRef::new_from_move(joylight_backend::fixture::Fixture::new("Dimmer2", &fixtemp));
+        let fixture3 = FixtureRef::new_from_move(joylight_backend::fixture::Fixture::new("Dimmer3", &fixtemp));
 
         let mut show= Show::default();
         show.add_fixture(fixture1);
@@ -116,8 +116,8 @@ fn main() {
 
         let selection = Arc::new(RwLock::new(joylight_backend::fixture::selection::FilteredSelection::new(
             "all",
-            Filter::Predicate(Box::new(|f| f.read().unwrap().name == "Dimmer2")),
-        )));
+            Filter::Predicate(Box::new(|f| f.read(|f| f.name == "Dimmer2").unwrap_or(false)))),
+        ));
 
         show.add_selection(selection.clone());
         show.refresh_fixtures();
@@ -129,7 +129,7 @@ fn main() {
         let node2 = graph.add_node(output.build("output"));
         link(&node1, &node2, 0);
 
-        let dbg = || { info!("Fixture brightnesses: {:?}", show.fixtures.iter().map(|f| f.1.read().unwrap().get_parameter_values().clone()).collect::<Vec<_>>()) };
+        let dbg = || { info!("Fixture brightnesses: {:?}", show.fixtures.iter().map(|f| f.1.read(|f| f.get_parameter_values().clone())).collect::<Vec<_>>()) };
 
         dbg();
         for _ in 0..2 {

@@ -8,6 +8,7 @@ pub mod effects;
 pub mod fixture;
 pub mod parameter;
 pub mod show;
+mod utils;
 
 use flexi_logger::{AdaptiveFormat, FileSpec, Logger, WriteMode};
 

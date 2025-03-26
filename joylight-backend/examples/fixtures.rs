@@ -2,7 +2,7 @@ use joylight_backend::colors::{blue, green, red};
 use joylight_backend::parameter::parameter_value::ColorBasedOnComponents;
 use joylight_backend::parameter::parameter_value::ParameterDescription;
 use joylight_backend::setup_logger;
-use joylight_backend::fixture::Fixture;
+use joylight_backend::fixture::{Fixture, FixtureRef};
 use joylight_backend::fixture::fixture_template::FixtureTemplate;
 use joylight_backend::parameter::parameter_type::ParameterType;
 use joylight_backend::parameter::parameter_value::ParameterValue;
@@ -199,7 +199,7 @@ fn main() {
     //     server.send(json_str.as_str(), 0).unwrap();
     // }
 
-    let arc_fixture = Arc::new(RwLock::new(three_fixture));
+    let arc_fixture = FixtureRef::new_from_move(three_fixture);
     
     let mut layer1 = Layer::new("Layer 1", BlendingMode::Highest, 1);
     let mut layer2 = Layer::new("Layer 1", BlendingMode::Highest, 1);

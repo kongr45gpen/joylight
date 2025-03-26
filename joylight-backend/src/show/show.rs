@@ -20,7 +20,7 @@ pub struct Show {
 
 impl Show {
     pub fn add_fixture(&mut self, fixture: FixtureRef) {
-        let name = fixture.read().unwrap().name.clone();
+        let name = fixture.read(|f| f.name.clone()).unwrap_or_else(|_| "Unnamed".into());
         self.fixtures.insert(name, fixture);
     }
     
@@ -69,13 +69,13 @@ impl Show {
         // TODO: Blending modes/priorities
         // TODO: Make sure that the parameter value is the same type or convertible..
         for (pair, values) in parameters.iter() {
-            let mut fixture = pair.fixture.write().unwrap();
-
-            for (layer, value) in values {
-                fixture.set_parameter(pair.parameter, (*value).clone())
-                    .with_context(|| format!("Layer {} setting parameter {} of {}", layer.name, pair.parameter, fixture.name))
-                    .map_err(|e| error!("Error setting parameter: {}", e));
-            }
+            pair.fixture.write(|fixture| {
+                for (layer, value) in values {
+                    let _ = fixture.set_parameter(pair.parameter, (*value).clone())
+                        .with_context(|| format!("Layer {} setting parameter {} of {}", layer.name, pair.parameter, fixture.name))
+                        .map_err(|e| error!("Error setting parameter: {}", e));
+                }
+            });
         }
     }
 }

@@ -38,7 +38,7 @@ pub enum ParameterDescription {
 }
 
 impl ParameterDescription {
-    /// Check whether a [`value`] is compatible with this parameter description.
+    /// Check whether a `value` is compatible with this parameter description.
     pub fn check(&self, value: &ParameterValue) -> Result<()> {
         fn compare_lengths(expected: usize, actual: usize) -> Result<()> {
             if expected != actual {

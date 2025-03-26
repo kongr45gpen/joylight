@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use crate::fixture::fixture_template::FixtureTemplate;
 use crate::parameter::parameter_value::ParameterValue;
+use crate::utils::{SmartRef, WithUuid};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use std::fmt::Debug;
@@ -19,7 +20,7 @@ pub struct Fixture {
 }
 
 /// Thread-safe reference to a fixture, to be passed around
-pub type FixtureRef = Arc<RwLock<Fixture>>;
+pub type FixtureRef = SmartRef<Fixture>;
 
 impl Fixture {
     /// Create a new fixture based on a template, setting parameter values to their defaults
@@ -66,5 +67,11 @@ impl Fixture {
 
         parameter_type.description.set_value(parameter, value)
             .with_context(|| format!("Setting parameter {} of {}", index, self.name))
+    }
+}
+
+impl WithUuid for Fixture {
+    fn uuid(&self) -> Uuid {
+        self.uuid
     }
 }
