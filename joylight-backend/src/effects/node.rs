@@ -1,12 +1,11 @@
-use smallvec::SmallVec;
 use std::fmt;
 use std::fmt::Debug;
-use std::sync::Arc;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
+
+use anyhow::{Context, Result};
+use smallvec::{smallvec, SmallVec};
 
 use super::io::NodeDataset;
-use anyhow::{Context, Result};
-use smallvec::smallvec;
 
 #[derive(Debug, Clone)]
 pub enum NodeParameterValue {
@@ -120,9 +119,7 @@ impl EffectNodeDefinition {
             inputs: SmallVec::new(),
             output_count: 0,
             position: (0.0, 0.0),
-            current_value: NodeDataset {
-                packets: smallvec![],
-            },
+            current_value: NodeDataset { packets: smallvec![] },
             mark: Mark::Unmarked,
         }
     }

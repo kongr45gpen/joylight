@@ -1,26 +1,21 @@
+use std::sync::{Arc, RwLock};
+use std::time::Instant;
+
+use joylight_backend::effects::io::NodeDataset;
 use joylight_backend::effects::node::link;
 use joylight_backend::effects::nodes::output::output;
-use joylight_backend::fixtures::{Filter,FixtureRef};
+use joylight_backend::fixtures::{Filter, FixtureRef};
 use joylight_backend::parameters::parameter_view::ViewValue;
-use joylight_backend::effects;
-use joylight_backend::effects::io::NodeDataset;
-use joylight_backend::setup_logger;
 use joylight_backend::show::Show;
-use smallvec::smallvec;
-use std::sync::Arc;
-use std::sync::RwLock;
-use std::time::Instant;
+use joylight_backend::{effects, setup_logger};
 use log::*;
+use smallvec::smallvec;
 
 fn main() {
     setup_logger();
 
     let input1 = smallvec![ViewValue::F64(100.0)];
-    let input2 = smallvec![
-        ViewValue::F64(100.0),
-        ViewValue::I64(1000),
-        ViewValue::F64(2000.0)
-    ];
+    let input2 = smallvec![ViewValue::F64(100.0), ViewValue::I64(1000), ViewValue::F64(2000.0)];
 
     {
         println!("Node processing test 1");
@@ -87,12 +82,14 @@ fn main() {
             "brightness",
             "Brightness",
             Box::new(joylight_backend::parameters::parameter_view::percentage()),
-            Box::new(joylight_backend::parameters::parameter_encoding::DMXMappingTransformer {
-                input_min: 0.0,
-                input_max: 100.0,
-                size: 1,
-                endianness: joylight_backend::parameters::parameter_encoding::Endianness::Big,
-            }),
+            Box::new(
+                joylight_backend::parameters::parameter_encoding::DMXMappingTransformer {
+                    input_min: 0.0,
+                    input_max: 100.0,
+                    size: 1,
+                    endianness: joylight_backend::parameters::parameter_encoding::Endianness::Big,
+                },
+            ),
             joylight_backend::parameters::parameter_value::ParameterDescription::Number(1),
             joylight_backend::parameters::parameter_value::ParameterValue::Number(vec![0.0]),
             None,
@@ -100,23 +97,23 @@ fn main() {
 
         let fixtemp = joylight_backend::fixtures::fixture_template::FixtureTemplate {
             name: "Dimmer".to_string(),
-            parameters: vec![
-                brightness.clone(),
-            ],
+            parameters: vec![brightness.clone()],
         };
 
         let fixture1 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer1", &fixtemp));
         let fixture2 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer2", &fixtemp));
         let fixture3 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer3", &fixtemp));
 
-        let mut show= Show::default();
+        let mut show = Show::default();
         show.add_fixture(fixture1);
         show.add_fixture(fixture2);
         show.add_fixture(fixture3);
 
-        let selection = Arc::new(RwLock::new(joylight_backend::fixtures::selection::FilteredSelection::new(
-            "all",
-            Filter::Predicate(Box::new(|f| f.read(|f| f.name == "Dimmer2").unwrap_or(false)))),
+        let selection = Arc::new(RwLock::new(
+            joylight_backend::fixtures::selection::FilteredSelection::new(
+                "all",
+                Filter::Predicate(Box::new(|f| f.read(|f| f.name == "Dimmer2").unwrap_or(false))),
+            ),
         ));
 
         show.add_selection(selection.clone());
@@ -129,7 +126,15 @@ fn main() {
         let node2 = graph.add_node(output.build("output"));
         link(&node1, &node2, 0);
 
-        let dbg = || { info!("Fixture brightnesses: {:?}", show.fixtures.iter().map(|f| f.1.read(|f| f.get_parameter_values().clone())).collect::<Vec<_>>()) };
+        let dbg = || {
+            info!(
+                "Fixture brightnesses: {:?}",
+                show.fixtures
+                    .iter()
+                    .map(|f| f.1.read(|f| f.get_parameter_values().clone()))
+                    .collect::<Vec<_>>()
+            )
+        };
 
         dbg();
         for _ in 0..2 {

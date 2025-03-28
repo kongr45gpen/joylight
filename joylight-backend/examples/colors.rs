@@ -1,14 +1,11 @@
-use joylight_backend::colors;
-
-use gtk4 as gtk;
 use gtk::prelude::*;
 use gtk::{glib, Application, ApplicationWindow, ColorButton, Label, TextView};
+use gtk4 as gtk;
 use gtk4::gdk::RGBA;
+use joylight_backend::colors;
 
 fn main() -> glib::ExitCode {
-    let application = Application::builder()
-        .application_id("com.example.FirstGtkApp")
-        .build();
+    let application = Application::builder().application_id("com.example.FirstGtkApp").build();
 
     application.connect_activate(|app| {
         let window = ApplicationWindow::builder()
@@ -23,7 +20,10 @@ fn main() -> glib::ExitCode {
         let label = gtk::Label::new(Some("Joylight Backend Demo\nSelect a colour"));
         layout.append(&label);
 
-        let chooser = gtk::ColorChooserWidget::builder().use_alpha(false).show_editor(true).build();
+        let chooser = gtk::ColorChooserWidget::builder()
+            .use_alpha(false)
+            .show_editor(true)
+            .build();
         layout.append(&chooser);
 
         layout.append(&Label::new(Some("\nSelect a result base (RGB):")));
@@ -55,35 +55,46 @@ fn main() -> glib::ExitCode {
             let json: serde_json::Value = serde_json::from_str(&text).unwrap_or(serde_json::Value::Null);
 
             let _ = std::panic::catch_unwind(|| {
-                let base: Vec<colors::RGBTuple> = json.as_array().unwrap().iter().map(|item| {
-                    let array = item.as_array().unwrap();
-                    colors::RGBTuple([array[0].as_f64().unwrap(), array[1].as_f64().unwrap(), array[2].as_f64().unwrap()])
-                }).collect();
+                let base: Vec<colors::RGBTuple> = json
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|item| {
+                        let array = item.as_array().unwrap();
+                        colors::RGBTuple([
+                            array[0].as_f64().unwrap(),
+                            array[1].as_f64().unwrap(),
+                            array[2].as_f64().unwrap(),
+                        ])
+                    })
+                    .collect();
 
                 button1.set_rgba(&RGBA::new(
                     base[0].0[0] as f32,
                     base[0].0[1] as f32,
                     base[0].0[2] as f32,
-                    1.0
+                    1.0,
                 ));
                 button2.set_rgba(&RGBA::new(
                     base[1].0[0] as f32,
                     base[1].0[1] as f32,
                     base[1].0[2] as f32,
-                    1.0
+                    1.0,
                 ));
                 button3.set_rgba(&RGBA::new(
                     base[2].0[0] as f32,
                     base[2].0[1] as f32,
                     base[2].0[2] as f32,
-                    1.0
+                    1.0,
                 ));
 
                 let color = colors::change_base(
-                    colors::rgb_base(), 
-                    base, 
-                    [rgba.red() as f64, rgba.green() as f64, rgba.blue() as f64].to_vec()
-                ).inspect_err(|e| eprintln!("failed to change base:")).unwrap();
+                    colors::rgb_base(),
+                    base,
+                    [rgba.red() as f64, rgba.green() as f64, rgba.blue() as f64].to_vec(),
+                )
+                .inspect_err(|e| eprintln!("failed to change base:"))
+                .unwrap();
 
                 button1label.set_text(&format!("Result 1: [{:.03}]", color[0]));
                 button2label.set_text(&format!("Result 2: [{:.03}]", color[1]));

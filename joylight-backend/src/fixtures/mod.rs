@@ -1,5 +1,5 @@
 //! Lighting fixtures
-//! 
+//!
 //! A fixture is defined by different objects:
 //! - A [FixtureTemplate], containing information about the fixture's definition and generic
 //!   information. This contains [ParameterType]s.
@@ -15,5 +15,5 @@ pub use fixture::*;
 pub use fixture_template::*;
 pub use selection::*;
 
-use crate::parameters::{ParameterType,ParameterValue};
+use crate::parameters::{ParameterType, ParameterValue};
 use crate::show::Show;

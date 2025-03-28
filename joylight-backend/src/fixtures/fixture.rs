@@ -1,11 +1,32 @@
-use anyhow::{anyhow, Context, Result};
-use crate::fixtures::fixture_template::FixtureTemplate;
-use crate::parameters::parameter_value::ParameterValue;
-use crate::utils::{SmartRef, WithUuid};
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
+use std::time::Instant;
+
+use anyhow::{anyhow, Context, Result};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+use crate::fixtures::fixture_template::FixtureTemplate;
+use crate::parameters::parameter_value::ParameterValue;
+use crate::parameters::{ParameterDescription, ViewValue};
+use crate::show::Layer;
+use crate::utils::{SmartRef, WithUuid};
+
+#[derive(Clone, Debug)]
+pub(crate) struct ParameterUpdate {
+    // pub parameter_index: usize,
+    pub value: ParameterValue,
+    pub layer: SmartRef<Layer>,
+    pub updated: Instant,
+}
+
+#[derive(Clone, Debug)]
+struct ParameterRuntime {
+    pub description: ParameterDescription,
+    pub value: ParameterValue,
+    pub view_values: Vec<ViewValue>,
+    pub updates: Vec<ParameterUpdate>,
+}
 
 /// An instance of a fixture with multiple parameter values.
 ///
@@ -46,7 +67,10 @@ impl Fixture {
             .iter()
             .zip(self.parameters.iter())
             .find(|(parameter_type, _)| parameter_type.alias == name)
-            .iter().enumerate().next().map(|(index, _)| index)
+            .iter()
+            .enumerate()
+            .next()
+            .map(|(index, _)| index)
     }
 
     pub fn get_parameter_by_number(&self, index: usize) -> Option<&ParameterValue> {
@@ -59,13 +83,20 @@ impl Fixture {
     }
 
     pub fn set_parameter(&mut self, index: usize, value: ParameterValue) -> Result<()> {
-        let parameter = self.parameters.get_mut(index)
+        let parameter = self
+            .parameters
+            .get_mut(index)
             .ok_or_else(|| anyhow!("Parameter index out of bounds"))?;
 
-        let parameter_type = self.template.parameters.get(index)
+        let parameter_type = self
+            .template
+            .parameters
+            .get(index)
             .ok_or_else(|| anyhow!("Parameter type index out of bounds"))?;
 
-        parameter_type.description.set_value(parameter, value)
+        parameter_type
+            .description
+            .set_value(parameter, value)
             .with_context(|| format!("Setting parameter {} of {}", index, self.name))
     }
 }

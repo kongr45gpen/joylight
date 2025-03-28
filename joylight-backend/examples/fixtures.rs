@@ -1,13 +1,10 @@
 use joylight_backend::colors::{blue, green, red};
-use joylight_backend::parameters::parameter_value::ColorBasedOnComponents;
-use joylight_backend::parameters::parameter_value::ParameterDescription;
-use joylight_backend::setup_logger;
-use joylight_backend::fixtures::{Fixture, FixtureRef};
 use joylight_backend::fixtures::fixture_template::FixtureTemplate;
+use joylight_backend::fixtures::{Fixture, FixtureRef};
 use joylight_backend::parameters::parameter_type::ParameterType;
-use joylight_backend::parameters::parameter_value::ParameterValue;
-use joylight_backend::parameters::parameter_view;
-use joylight_backend::parameters::parameter_encoding;
+use joylight_backend::parameters::parameter_value::{ColorBasedOnComponents, ParameterDescription, ParameterValue};
+use joylight_backend::parameters::{parameter_encoding, parameter_view};
+use joylight_backend::setup_logger;
 use joylight_backend::show::*;
 
 fn main() {
@@ -38,7 +35,7 @@ fn main() {
             size: 1,
             endianness: parameter_encoding::Endianness::Big,
         }),
-        ParameterDescription::ColorBasedOnComponents(ColorBasedOnComponents{
+        ParameterDescription::ColorBasedOnComponents(ColorBasedOnComponents {
             components: vec![red(), green(), blue()],
             subtractive: false,
         }),
@@ -199,7 +196,7 @@ fn main() {
     // }
 
     let arc_fixture = FixtureRef::new_from_move(three_fixture);
-    
+
     let mut layer1 = Layer::new("Layer 1", BlendingMode::Highest, 1);
     let mut layer2 = Layer::new("Layer 1", BlendingMode::Highest, 1);
 

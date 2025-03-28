@@ -1,6 +1,7 @@
-use smallvec::SmallVec;
 use std::fmt::Debug;
+
 use anyhow::{anyhow, Context, Result};
+use smallvec::SmallVec;
 
 use crate::parameters::parameter_view::{ViewValue, ViewValuePacket};
 
@@ -14,7 +15,8 @@ pub struct NodeDataset {
 /// Most node definitions will work on numbers. This function makes sure that the input data is in a floating-point format
 /// for consistent processing.
 pub fn packet_to_f64(packet: &ViewValuePacket) -> Result<SmallVec<[f64; 6]>> {
-    packet.iter()
+    packet
+        .iter()
         .map(|value| match value {
             ViewValue::F64(f) => Ok(*f),
             ViewValue::I64(i) => Ok(*i as f64),
@@ -25,7 +27,7 @@ pub fn packet_to_f64(packet: &ViewValuePacket) -> Result<SmallVec<[f64; 6]>> {
 
 impl NodeDataset {
     /// Check if the number of values in the dataset is equal to the expected count.
-    /// 
+    ///
     /// This is useful, for example, to make sure that a node receives a specific number of
     /// inputs as required, before any processing.
     pub fn check_count(&self, count: usize) -> Result<&Self> {
@@ -37,34 +39,35 @@ impl NodeDataset {
     }
 
     /// Call a function on each input packet of the dataset, producing a new output dataset
-    /// 
+    ///
     /// This is useful for generic nodes that will perform the same operation on an arbitrary number of inputs,
     /// producing the same number of outputs.
     pub fn map_values(&self, f: impl Fn(&ViewValuePacket) -> Result<ViewValuePacket>) -> Result<NodeDataset> {
-        self.packets.iter()
+        self.packets
+            .iter()
             .map(f)
             .collect::<Result<_>>()
-            .map(|packets| NodeDataset{ packets })
+            .map(|packets| NodeDataset { packets })
     }
 
     /// Create a new dataset with a single input packet.
     pub fn new_single(packet: ViewValuePacket) -> Self {
         NodeDataset {
-            packets: SmallVec::from_vec(vec![packet])
+            packets: SmallVec::from_vec(vec![packet]),
         }
     }
 
     /// Create a new dataset based on a generator function.
     pub fn new_from_generator(n: usize, f: impl Fn() -> ViewValuePacket) -> Self {
         NodeDataset {
-            packets: (0..n).map(|_| f()).collect()
+            packets: (0..n).map(|_| f()).collect(),
         }
     }
 
     /// Create a new dataset based on a generator function that may return an error.
     pub fn try_new_from_generator(n: usize, f: impl Fn() -> Result<ViewValuePacket>) -> Result<Self> {
         Ok(NodeDataset {
-            packets: (0..n).map(|_| f()).collect::<Result<_>>()?
+            packets: (0..n).map(|_| f()).collect::<Result<_>>()?,
         })
     }
 }

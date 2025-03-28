@@ -1,8 +1,8 @@
-use joylight_backend::setup_logger;
-use reedline::{DefaultPrompt, Reedline, Signal};
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::prelude::*;
+use joylight_backend::setup_logger;
 use log::*;
+use reedline::{DefaultPrompt, Reedline, Signal};
 
 #[derive(Debug, Clone)]
 enum Command {
@@ -12,8 +12,14 @@ enum Command {
 
 fn parser() -> impl Parser<char, Command, Error = Simple<char>> {
     choice((
-        text::keyword("select").padded().then(text::ident().padded().repeated().at_least(1)).map(|(_, s)| Command::Select(s)),
-        text::keyword("set").padded().then(text::ident()).map(|(_, s)| Command::Set(s)),
+        text::keyword("select")
+            .padded()
+            .then(text::ident().padded().repeated().at_least(1))
+            .map(|(_, s)| Command::Select(s)),
+        text::keyword("set")
+            .padded()
+            .then(text::ident())
+            .map(|(_, s)| Command::Set(s)),
     ))
 }
 
@@ -29,7 +35,7 @@ fn main() {
             Ok(Signal::Success(buffer)) => {
                 debug!("Read line: {:?}", buffer);
                 let result = parser().parse(buffer.clone());
-                
+
                 match result {
                     Ok(command) => {
                         println!("Command: {:#?}", command);
@@ -41,7 +47,7 @@ fn main() {
                                 .with_label(
                                     Label::new(err.span())
                                         .with_message::<String>(format!("{:?}", err.reason()))
-                                        .with_color(Color::Red)
+                                        .with_color(Color::Red),
                                 )
                                 .finish()
                                 .eprint(Source::from(buffer.clone()))
@@ -49,7 +55,6 @@ fn main() {
                         }
                     }
                 }
-
             }
             Ok(Signal::CtrlD) | Ok(Signal::CtrlC) => {
                 println!("\nAborted!");

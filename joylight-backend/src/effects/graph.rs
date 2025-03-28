@@ -1,19 +1,15 @@
 use std::collections::LinkedList;
 use std::fmt::Debug;
-use std::sync::Arc;
-use std::sync::RwLock;
+use std::io::Write;
+use std::process::{Command, Stdio};
+use std::sync::{Arc, RwLock};
 
-use anyhow::Context;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use log::{debug, info};
-use smallvec::smallvec;
-use smallvec::SmallVec;
+use smallvec::{smallvec, SmallVec};
 
 use crate::effects::io::NodeDataset;
 use crate::effects::node::{EffectNode, Mark, NodeParameterValue, NodeRef};
-
-use std::io::Write;
-use std::process::{Command, Stdio};
 
 #[derive(Debug)]
 pub struct EffectGraph<'a> {
@@ -195,7 +191,8 @@ impl<'a> EffectGraph<'a> {
                                     link.output_id,
                                     from_node.label,
                                     from_node.current_value.packets.len()
-                                )).cloned()
+                                ))
+                                .cloned()
                         }
                         None => Ok(smallvec![]),
                     }
@@ -203,13 +200,10 @@ impl<'a> EffectGraph<'a> {
                 .collect::<Result<SmallVec<_>>>()
                 .with_context(|| format!("Error processing node: {}", node.label))?;
 
-            let input_dataset = NodeDataset {
-                packets: input_data,
-            };
+            let input_dataset = NodeDataset { packets: input_data };
 
-            let output =
-                (node.definition.processor)(&input_dataset, &null_parameters, node.output_count)
-                    .with_context(|| format!("Error processing node: {}", node.label));
+            let output = (node.definition.processor)(&input_dataset, &null_parameters, node.output_count)
+                .with_context(|| format!("Error processing node: {}", node.label));
             debug!(" Output: {:?}", output);
 
             node.current_value = output?;

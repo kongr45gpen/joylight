@@ -1,14 +1,14 @@
 //! A view of a parameter's value, designed to be readable and editable by the user
 
-use crate::{
-    colors,
-    colors::{ColorModel, RGBTuple},
-    parameters::parameter_value::ParameterValue,
-};
+use std::fmt::Debug;
+
 use dyn_clone::DynClone;
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
-use std::fmt::Debug;
+
+use crate::colors;
+use crate::colors::{ColorModel, RGBTuple};
+use crate::parameters::parameter_value::ParameterValue;
 
 const N: usize = 6;
 
@@ -53,10 +53,7 @@ impl ParameterView for SliderView {
             return Err(());
         };
 
-        numbers
-            .first()
-            .map(|number| vec![ViewValue::F64(*number)])
-            .ok_or(())
+        numbers.first().map(|number| vec![ViewValue::F64(*number)]).ok_or(())
     }
 
     fn to_value(&self, input: Vec<ViewValue>, value: &mut ParameterValue) -> Result<(), ()> {
@@ -133,11 +130,7 @@ impl ParameterView for ColorComponentView {}
 
 pub fn rgb() -> ColorComponentView {
     ColorComponentView {
-        components: vec![
-            colors::red(),
-            colors::green(),
-            colors::blue(),
-        ],
+        components: vec![colors::red(), colors::green(), colors::blue()],
         subtractive: false,
         has_quality: false,
         name: "RGB".to_string(),

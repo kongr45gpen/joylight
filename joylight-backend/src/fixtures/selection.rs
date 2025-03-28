@@ -1,15 +1,14 @@
 use std::collections::{BTreeSet, HashSet};
 use std::sync::{Arc, RwLock, Weak};
 
+use super::Fixture;
 use crate::fixtures::FixtureRef;
 use crate::show::Show;
-
-use super::Fixture;
 
 /// A selection describes a user-defined set of fixtures. It may be a fixed group of fixtures,
 /// or updated dynamically based on some filter. For example, you can match fixtures of a
 /// certain brand or with a certain name.
-/// 
+///
 /// Selections are used to define fixture groups, to define event outputs, and wherever else
 /// a dynamic set of fixtures is needed.
 pub trait Selection {
@@ -91,7 +90,9 @@ impl Selection for FilteredSelection {
     }
 
     fn update(&mut self, show: &Show) {
-        self.resolved_fixtures = show.fixtures.values()
+        self.resolved_fixtures = show
+            .fixtures
+            .values()
             .filter(|fixture| self.filter.eval(fixture))
             .cloned()
             .collect();

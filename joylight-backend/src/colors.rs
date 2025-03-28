@@ -1,11 +1,10 @@
 //! Color management utilities
 
-use ndarray::prelude::*;
-use ndarray::arr2;
-use ndarray_linalg::Solve;
-use ndarray_linalg::Inverse;
-use ndarray_linalg::LeastSquaresSvd;
 use std::fmt;
+
+use ndarray::arr2;
+use ndarray::prelude::*;
+use ndarray_linalg::{Inverse, LeastSquaresSvd, Solve};
 
 /// A simple representation of an RGB color
 ///
@@ -15,10 +14,7 @@ pub struct RGBTuple(pub [f64; 3]);
 
 impl fmt::Debug for RGBTuple {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_fmt(format_args!(
-            "RGB [{}, {}, {}]",
-            self.0[0], self.0[1], self.0[2]
-        ))
+        f.write_fmt(format_args!("RGB [{}, {}, {}]", self.0[0], self.0[1], self.0[2]))
     }
 }
 
@@ -51,28 +47,16 @@ pub enum ColorModel {
     HSL,
 }
 
-fn change_base_3d(
-    from: Array2<f64>,
-    to: Array2<f64>,
-    color: Array1<f64>,
-) -> Result<Array1<f64>, ()> {
+fn change_base_3d(from: Array2<f64>, to: Array2<f64>, color: Array1<f64>) -> Result<Array1<f64>, ()> {
     Ok(to.t().inv().map_err(|_| ())?.dot(&from).dot(&color))
 }
 
-fn best_fit(
-    from: Array2<f64>,
-    to: Array2<f64>,
-    color: Array1<f64>,
-) -> Result<Array1<f64>, ()> {
+fn best_fit(from: Array2<f64>, to: Array2<f64>, color: Array1<f64>) -> Result<Array1<f64>, ()> {
     let ls = to.t().least_squares(&color).map_err(|_| ())?;
     Ok(ls.solution)
 }
 
-pub fn change_base(
-    from: Vec<RGBTuple>,
-    to: Vec<RGBTuple>,
-    color: Vec<f64>,
-) -> Result<Vec<f64>,()> {
+pub fn change_base(from: Vec<RGBTuple>, to: Vec<RGBTuple>, color: Vec<f64>) -> Result<Vec<f64>, ()> {
     if from.len() < 2 || to.len() < 2 {
         return Err(());
     }
@@ -80,12 +64,14 @@ pub fn change_base(
     let a1 = Array2::from_shape_vec(
         (from.len(), 3),
         from.iter().flat_map(|RGBTuple(rgb)| rgb.iter().copied()).collect(),
-    ).map_err(|_| ())?;
+    )
+    .map_err(|_| ())?;
 
     let a2 = Array2::from_shape_vec(
         (to.len(), 3),
         to.iter().flat_map(|RGBTuple(rgb)| rgb.iter().copied()).collect(),
-    ).map_err(|_| ())?;
+    )
+    .map_err(|_| ())?;
 
     let b = Array::from_vec(color);
 
@@ -106,8 +92,6 @@ pub fn change_base(
     }
 
     Err(())
-
-
 }
 
 #[cfg(test)]
@@ -167,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore="not implemented"]
+    #[ignore = "not implemented"]
     fn rgb_to_rg() {
         let from_base = rgb_base();
         let to_base = vec![red(), green()];
@@ -219,7 +203,7 @@ mod tests {
     }
 
     #[test]
-    #[ignore="not implemented"]
+    #[ignore = "not implemented"]
     fn rgb_to_rgbw() {
         let from_base = rgb_base();
         let to_base = vec![red(), green(), blue(), white()];

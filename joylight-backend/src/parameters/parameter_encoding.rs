@@ -1,12 +1,11 @@
 //! Encoding descriptions for DMX parameters
 
+use std::cmp;
+use std::fmt::Debug;
+use std::ops::{Mul, Sub};
+
 use dyn_clone::DynClone;
 use serde::{Deserialize, Serialize};
-use std::{
-    cmp,
-    fmt::Debug,
-    ops::{Mul, Sub},
-};
 
 use crate::parameters::parameter_value::ParameterValue;
 
@@ -219,10 +218,7 @@ mod tests {
         let value = ParameterValue::Number(vec![55.0, 57.0, 139.0]);
         let result = transformer.encode(value).unwrap();
 
-        assert_eq!(
-            result,
-            vec![0x49, 0x92, 0x64, 0x83, 0x3A, 0x68, 0xE2, 0x2B, 0xFE]
-        );
+        assert_eq!(result, vec![0x49, 0x92, 0x64, 0x83, 0x3A, 0x68, 0xE2, 0x2B, 0xFE]);
     }
 
     #[test]

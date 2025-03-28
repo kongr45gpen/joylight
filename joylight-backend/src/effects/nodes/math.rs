@@ -1,13 +1,15 @@
-use crate::effects::io::{packet_to_f64, NodeDataset};
-use crate::effects::node::{EffectNodeDefinition, NodeType};
-use crate::parameters::parameter_view::{ViewValue, ViewValuePacket};
+use std::cell::OnceCell;
+use std::time::{Instant, SystemTime};
+
 use anyhow::{anyhow, Result};
+use log::debug;
 use rand::Rng;
 use serde::de;
 use smallvec::{smallvec, SmallVec};
-use std::cell::OnceCell;
-use std::time::{Instant, SystemTime};
-use log::debug;
+
+use crate::effects::io::{packet_to_f64, NodeDataset};
+use crate::effects::node::{EffectNodeDefinition, NodeType};
+use crate::parameters::parameter_view::{ViewValue, ViewValuePacket};
 
 fn universal_math<F>(inputs: &NodeDataset, op: F) -> Result<NodeDataset>
 where
@@ -72,9 +74,7 @@ pub fn clock(instant: Instant) -> EffectNodeDefinition {
         parameters: vec![],
         node_type: NodeType::Input,
         processor: Box::new(move |_, _, _| {
-            let time = instant
-                .elapsed()
-                .as_secs_f64();
+            let time = instant.elapsed().as_secs_f64();
 
             debug!("Clock: {}", time);
 

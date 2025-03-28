@@ -1,14 +1,16 @@
-use anyhow::Context;
-use crate::fixtures::FixtureRef;
-use std::{collections::HashMap, error::Error};
-use crate::fixtures::selection::Selection;
-use crate::parameters::parameter_value::ParameterValue;
-use std::sync::{Arc,Weak,RwLock};
-use log::*;
-use super::layer::*;
+use std::collections::HashMap;
+use std::error::Error;
+use std::sync::{Arc, RwLock, Weak};
 
-#[derive(Debug)]
-#[derive(Default)]
+use anyhow::Context;
+use log::*;
+
+use super::layer::*;
+use crate::fixtures::selection::Selection;
+use crate::fixtures::FixtureRef;
+use crate::parameters::parameter_value::ParameterValue;
+
+#[derive(Debug, Default)]
 pub struct Show {
     /// The fixtures that are currently in the show
     pub fixtures: HashMap<String, FixtureRef>,
@@ -17,13 +19,12 @@ pub struct Show {
     layers: Vec<Layer>,
 }
 
-
 impl Show {
     pub fn add_fixture(&mut self, fixture: FixtureRef) {
         let name = fixture.read(|f| f.name.clone()).unwrap_or_else(|_| "Unnamed".into());
         self.fixtures.insert(name, fixture);
     }
-    
+
     pub fn add_selection(&mut self, selection: Arc<RwLock<dyn Selection>>) {
         self.selections.push(Arc::downgrade(&selection));
     }
@@ -49,10 +50,10 @@ impl Show {
     }
 
     /// Evaluate current values of parameter layers
-    /// 
+    ///
     /// TODO: This creates and fills a new map for every iteration. This state can be stored and somewhat optimised.
     pub fn eval_layers(&self) {
-        let mut parameters: HashMap<FixtureParameterPair, Vec<(&Layer,&ParameterValue)>> = HashMap::new();
+        let mut parameters: HashMap<FixtureParameterPair, Vec<(&Layer, &ParameterValue)>> = HashMap::new();
 
         // Load active parameter values into map
         for layer in self.layers.iter() {
@@ -71,8 +72,14 @@ impl Show {
         for (pair, values) in parameters.iter() {
             pair.fixture.write(|fixture| {
                 for (layer, value) in values {
-                    let _ = fixture.set_parameter(pair.parameter, (*value).clone())
-                        .with_context(|| format!("Layer {} setting parameter {} of {}", layer.name, pair.parameter, fixture.name))
+                    let _ = fixture
+                        .set_parameter(pair.parameter, (*value).clone())
+                        .with_context(|| {
+                            format!(
+                                "Layer {} setting parameter {} of {}",
+                                layer.name, pair.parameter, fixture.name
+                            )
+                        })
                         .map_err(|e| error!("Error setting parameter: {}", e));
                 }
             });
