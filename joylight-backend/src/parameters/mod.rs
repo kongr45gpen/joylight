@@ -5,14 +5,14 @@
 //! internally, and what the fixture receives, we use an MVC-like pattern to allow flexibility in representing parameters.
 //!
 //! ```text
-//! /-------------------\     /-----------------------\     /-------------------\
-//! |   Parameter View  |     | Parameter Description |     | Parameter Encoder |
-//! |     describes     |     |       describes       |     |     describes     |
-//! |-------------------|     |-----------------------|     |-------------------|
-//! |     View Value    |     |    Parameter Value    |     |   Encoded Value   |
-//! \-------------------/     \-----------------------/     \-------------------/
-//!           \---------------------------|---------------------------/
-//!                          Linked by Parameter Type
+//!                    /------------------\     /---------------------\     /-------------------\
+//! ParameterType:     |  Parameter View  |     |  PValueDescription  |     | Parameter Encoder |
+//!                    |    describes     |     |      describes      |     |     describes     |
+//!                    |------------------|     |---------------------|     |-------------------|
+//! ParameterRuntime:  |    View Value    |     |   Parameter Value   |     |   Encoded Value   |
+//!                    \------------------/     \---------------------/     \-------------------/
+//!                              \---------------------------|---------------------------/
+//!                                             Linked by Parameter Type
 //! ```
 //!
 //! - **Views**: A parameter view is shown to the user and can be converted to/from a parameter value. The [parameter_view::ParameterView]
@@ -23,6 +23,9 @@
 //!   of the fixture's state. This is described by the [parameter_value::ParameterValue] enum.
 //! - **Encoders**: The [parameter_dmx::ParameterEncoder] trait describes how the parameter value is mapped to the fixture's protocol
 //!   (such as DMX). The final encoded value then depends on the protocol used.
+//!
+//! Within the software, the generic description of the parameter is defined as a [ParameterType], while the actual values linked to
+//! the parameter's model and view in the show are represented in the [ParameterRuntime].
 //!
 //! ## Example
 //! Let's take the color of a CMY (Cyan, Magenta, Yellow) fixture as an example.
@@ -43,11 +46,13 @@
 //! and provides the necessary functions to convert to and from CMY.
 
 pub mod parameter_encoding;
+pub mod parameter_runtime;
 pub mod parameter_type;
 pub mod parameter_value;
 pub mod parameter_view;
 
 pub use parameter_encoding::*;
+pub use parameter_runtime::*;
 pub use parameter_type::*;
 pub use parameter_value::*;
 pub use parameter_view::*;

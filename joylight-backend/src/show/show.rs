@@ -9,6 +9,7 @@ use super::layer::*;
 use crate::fixtures::selection::Selection;
 use crate::fixtures::FixtureRef;
 use crate::parameters::parameter_value::ParameterValue;
+use crate::utils::SmartRef;
 
 #[derive(Debug, Default)]
 pub struct Show {
@@ -16,7 +17,7 @@ pub struct Show {
     pub fixtures: HashMap<String, FixtureRef>,
     /// Weak pointers to active selections that should be updated when necessary
     selections: Vec<Weak<RwLock<dyn Selection>>>,
-    layers: Vec<Layer>,
+    layers: Vec<SmartRef<Layer>>,
 }
 
 impl Show {
@@ -45,43 +46,25 @@ impl Show {
         self.selections.retain(|weak| weak.strong_count() > 0);
     }
 
-    pub fn add_layer(&mut self, layer: Layer) {
+    pub fn add_layer(&mut self, layer: SmartRef<Layer>) {
         self.layers.push(layer);
     }
 
-    /// Evaluate current values of parameter layers
-    ///
-    /// TODO: This creates and fills a new map for every iteration. This state can be stored and somewhat optimised.
-    pub fn eval_layers(&self) {
-        let mut parameters: HashMap<FixtureParameterPair, Vec<(&Layer, &ParameterValue)>> = HashMap::new();
-
-        // Load active parameter values into map
-        for layer in self.layers.iter() {
-            if !layer.active {
-                continue;
-            }
-
-            for (pair, value) in layer.parameters.iter() {
-                parameters.entry(pair.clone()).or_default().push((layer, value));
-            }
+    pub fn remove_layer(&mut self, layer: SmartRef<Layer>) {
+        for fixture in self.fixtures.values() {
+            let _ = fixture.write(|fixture| {
+                fixture.remove_layer_from_parameters(&layer);
+            });
         }
 
-        // Apply parameters to fixture
-        // TODO: Blending modes/priorities
-        // TODO: Make sure that the parameter value is the same type or convertible..
-        for (pair, values) in parameters.iter() {
-            pair.fixture.write(|fixture| {
-                for (layer, value) in values {
-                    let _ = fixture
-                        .set_parameter(pair.parameter, (*value).clone())
-                        .with_context(|| {
-                            format!(
-                                "Layer {} setting parameter {} of {}",
-                                layer.name, pair.parameter, fixture.name
-                            )
-                        })
-                        .map_err(|e| error!("Error setting parameter: {}", e));
-                }
+        self.layers.retain(|l| l.uuid() != layer.uuid());
+    }
+
+    /// Evaluate current values of parameter layers for every fixture
+    pub fn eval_parameters(&self) {
+        for fixture in self.fixtures.values() {
+            let _ = fixture.write(|fixture| {
+                fixture.update_parameters();
             });
         }
     }

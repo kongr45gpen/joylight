@@ -63,6 +63,9 @@ impl<'a> EffectGraph<'a> {
         String::from_utf8_lossy(&output.stdout).into()
     }
 
+    /// Add a node to the effects graph
+    ///
+    /// This will break the topological sort of the graph.
     pub fn add_node(&mut self, node: EffectNode<'a>) -> NodeRef<'a> {
         let new_node = Arc::new(RwLock::new(node));
 

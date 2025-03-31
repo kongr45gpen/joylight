@@ -19,7 +19,7 @@ pub trait WithUuid {
 ///
 /// TODO: Think about implementing a `Weak` version?
 pub struct SmartRef<T> {
-    pub uuid: Uuid,
+    uuid: Uuid,
     value: Arc<RwLock<T>>,
 }
 
@@ -94,9 +94,18 @@ where
     }
 }
 
-impl<T> fmt::Debug for SmartRef<T> {
+impl<T> fmt::Debug for SmartRef<T>
+where
+    T: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SmartRef<{}> {{ uuid: {} }}", std::any::type_name::<T>(), self.uuid)
+        write!(f, "SmartRef<{}> {{ {} }}", std::any::type_name::<T>(), self.uuid)
+        // let mut dbg = f.debug_struct(format!("SmartRef<{}>", std::any::type_name::<T>()).as_str());
+
+        // if let Ok(guard) = self.value.read() {
+            // dbg.field("value", &guard)
+        // } else {
+            // dbg.field("value", &"Error reading value")
+        // }.finish()
     }
 }
 
@@ -115,9 +124,15 @@ impl<T> PartialEq for SmartRef<T> {
     }
 }
 
+impl<T> Ord for SmartRef<T> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.uuid.cmp(&other.uuid)
+    }
+}
+
 impl<T> PartialOrd for SmartRef<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.uuid.cmp(&other.uuid))
+        Some(self.cmp(other))
     }
 }
 

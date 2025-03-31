@@ -90,7 +90,7 @@ fn main() {
                     endianness: joylight_backend::parameters::parameter_encoding::Endianness::Big,
                 },
             ),
-            joylight_backend::parameters::parameter_value::ParameterDescription::Number(1),
+            joylight_backend::parameters::parameter_value::ParameterValueDescription::Number(1),
             joylight_backend::parameters::parameter_value::ParameterValue::Number(vec![0.0]),
             None,
         );
@@ -131,7 +131,7 @@ fn main() {
                 "Fixture brightnesses: {:?}",
                 show.fixtures
                     .iter()
-                    .map(|f| f.1.read(|f| f.get_parameter_values().clone()))
+                    .map(|f| f.1.read(|f| f.get_parameter_values().cloned().collect::<Vec<_>>()))
                     .collect::<Vec<_>>()
             )
         };

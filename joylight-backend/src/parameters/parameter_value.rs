@@ -34,14 +34,19 @@ pub struct ColorBasedOnComponents {
     pub subtractive: bool,
 }
 
+/// A description of what the parameter value means.
+///
+/// This enum will contain the information on how many elements should be in the parameter value,
+/// what type it should have, and any additional parameter-specific information (e.g. the color model,
+/// gobo list etc.)
 #[derive(Clone, Debug)]
-pub enum ParameterDescription {
+pub enum ParameterValueDescription {
     Number(usize),
     Integer(usize),
     ColorBasedOnComponents(ColorBasedOnComponents),
 }
 
-impl ParameterDescription {
+impl ParameterValueDescription {
     /// Check whether a `value` is compatible with this parameter description.
     pub fn check(&self, value: &ParameterValue) -> Result<()> {
         fn compare_lengths(expected: usize, actual: usize) -> Result<()> {
@@ -57,21 +62,21 @@ impl ParameterDescription {
         }
 
         match self {
-            ParameterDescription::Number(len) => {
+            ParameterValueDescription::Number(len) => {
                 if let ParameterValue::Number(v) = value {
                     compare_lengths(*len, v.len())
                 } else {
                     incompatible_types()
                 }
             }
-            ParameterDescription::Integer(len) => {
+            ParameterValueDescription::Integer(len) => {
                 if let ParameterValue::Integer(v) = value {
                     compare_lengths(*len, v.len())
                 } else {
                     incompatible_types()
                 }
             }
-            ParameterDescription::ColorBasedOnComponents(components) => {
+            ParameterValueDescription::ColorBasedOnComponents(components) => {
                 if let ParameterValue::Number(v) = value {
                     compare_lengths(components.components.len(), v.len())
                 } else {
@@ -92,9 +97,9 @@ impl ParameterDescription {
     /// Whether addition and multiplication are allowed on this parameter
     pub fn can_operate(&self) -> bool {
         match self {
-            ParameterDescription::Number(_) => true,
-            ParameterDescription::Integer(_) => false,
-            ParameterDescription::ColorBasedOnComponents(_) => true,
+            ParameterValueDescription::Number(_) => true,
+            ParameterValueDescription::Integer(_) => false,
+            ParameterValueDescription::ColorBasedOnComponents(_) => true,
         }
     }
 }

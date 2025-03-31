@@ -149,3 +149,23 @@ impl Selection for DummySelection {
 
     fn update(&mut self, _: &Show) {}
 }
+
+
+/// A selection built for easy addition/removal of fixtures
+#[derive(Debug)]
+pub struct FluidStrictSelection {
+    pub name: String,
+    pub fixtures: BTreeSet<FixtureRef>,
+}
+
+impl Selection for FluidStrictSelection {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn fixtures(&self) -> &Vec<FixtureRef> {
+        unimplemented!()
+    }
+
+    fn update(&mut self, _: &Show) {}
+}

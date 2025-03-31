@@ -5,7 +5,7 @@ use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
 
-use super::parameter_value::ParameterDescription;
+use super::parameter_value::ParameterValueDescription;
 use crate::parameters::{ParameterEncoder, ParameterValue, ParameterView};
 
 /// Representation of a Parameter Type of a fixture.
@@ -25,8 +25,8 @@ pub struct ParameterType {
     pub view: Box<dyn ParameterView>,
     /// Encoding (e.g. DMX) details
     pub encoding: Box<dyn ParameterEncoder>,
-    /// The description of the parameter
-    pub description: ParameterDescription,
+    /// The description of the parameter's value
+    pub description: ParameterValueDescription,
     /// Default value of the parameter on fixture initialisation.
     pub default_value: ParameterValue,
     /// Optional text comments/description shown to the user
@@ -41,7 +41,7 @@ impl ParameterType {
         display_name: &str,
         view: Box<dyn ParameterView>,
         encoding: Box<dyn ParameterEncoder>,
-        description: ParameterDescription,
+        description: ParameterValueDescription,
         default_value: ParameterValue,
         comments: Option<String>,
     ) -> Self {

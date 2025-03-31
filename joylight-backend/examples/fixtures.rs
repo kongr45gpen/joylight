@@ -2,10 +2,11 @@ use joylight_backend::colors::{blue, green, red};
 use joylight_backend::fixtures::fixture_template::FixtureTemplate;
 use joylight_backend::fixtures::{Fixture, FixtureRef};
 use joylight_backend::parameters::parameter_type::ParameterType;
-use joylight_backend::parameters::parameter_value::{ColorBasedOnComponents, ParameterDescription, ParameterValue};
+use joylight_backend::parameters::parameter_value::{ColorBasedOnComponents, ParameterValueDescription, ParameterValue};
 use joylight_backend::parameters::{parameter_encoding, parameter_view};
 use joylight_backend::setup_logger;
 use joylight_backend::show::*;
+use joylight_backend::utils::SmartRef;
 
 fn main() {
     setup_logger();
@@ -20,7 +21,7 @@ fn main() {
             size: 1,
             endianness: parameter_encoding::Endianness::Big,
         }),
-        ParameterDescription::Number(1),
+        ParameterValueDescription::Number(1),
         ParameterValue::Number(vec![0.0]),
         None,
     );
@@ -35,7 +36,7 @@ fn main() {
             size: 1,
             endianness: parameter_encoding::Endianness::Big,
         }),
-        ParameterDescription::ColorBasedOnComponents(ColorBasedOnComponents {
+        ParameterValueDescription::ColorBasedOnComponents(ColorBasedOnComponents {
             components: vec![red(), green(), blue()],
             subtractive: false,
         }),
@@ -197,21 +198,25 @@ fn main() {
 
     let arc_fixture = FixtureRef::new_from_move(three_fixture);
 
-    let mut layer1 = Layer::new("Layer 1", BlendingMode::Highest, 1);
-    let mut layer2 = Layer::new("Layer 1", BlendingMode::Highest, 1);
+    let layer1 = Layer::new("Layer 1", BlendingMode::Highest, 1);
+    let layer2 = Layer::new("Layer 1", BlendingMode::Highest, 1);
 
-    layer1.set_value(arc_fixture.clone(), 0, ParameterValue::Number(vec![0.5]));
-    layer1.set_value(arc_fixture.clone(), 1, ParameterValue::Number(vec![0.5]));
+    let layer1 = SmartRef::new_from_move(layer1);
+    let layer2 = SmartRef::new_from_move(layer2);
 
-    layer2.set_value(arc_fixture.clone(), 0, ParameterValue::Number(vec![0.75]));
-    layer2.set_value(arc_fixture.clone(), 1, ParameterValue::Number(vec![0.75]));
+    layer1.set_value(arc_fixture.clone(), 0, &ParameterValue::Number(vec![0.5]));
+    layer1.set_value(arc_fixture.clone(), 1, &ParameterValue::Number(vec![0.5]));
+
+    layer2.set_value(arc_fixture.clone(), 0, &ParameterValue::Number(vec![0.75]));
+    layer2.set_value(arc_fixture.clone(), 1, &ParameterValue::Number(vec![0.75]));
 
     let mut show = Show::default();
     show.add_fixture(arc_fixture);
     show.add_layer(layer1);
     show.add_layer(layer2);
 
-    show.eval_layers();
+    show.eval_parameters();
 
     println!("{:#?}", show);
+    println!("{:#?}", show.fixtures.iter().next().unwrap().1.get().unwrap().read().unwrap());
 }
