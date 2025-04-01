@@ -16,9 +16,10 @@ use crate::parameters::{ParameterUpdate, ParameterValueDescription};
 use crate::utils::{SmartRef, WithUuid};
 
 /// A blending mode, assigned to each layer, defines how multiple layers changing the same parameter are resolved
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum BlendingMode {
     /// Add this value to the current one
+    #[default]
     Add,
     /// This layer takes precedence over the previous ones if it has a higher value.
     Highest,
@@ -31,12 +32,6 @@ pub enum BlendingMode {
     /// Multiply the current value with this one. This operation takes priority over previous multiplications
     /// and overrides.
     MultiplyOverride,
-}
-
-impl Default for BlendingMode {
-    fn default() -> Self {
-        BlendingMode::Add
-    }
 }
 
 #[derive(Clone, Hash, PartialEq, Eq)]
@@ -103,21 +98,26 @@ impl WithUuid for Layer {
 impl SmartRef<Layer> {
     /// Set the value of a parameter for a fixture
     ///
-    /// This value will be retained in next refreshes
+    /// This value will be retained in next refreshes.
+    /// This function will not update the value of the fixture immediately. All values will be gathered
+    /// and updated on every frame, after a call to [crate::show::Show::eval_parameters], for example.
     pub fn set_value(&self, fixture: FixtureRef, parameter_index: usize, value: &ParameterValue) {
-        fixture.write(|f| {
-            let parameter = f.get_parameter_by_number_mut(parameter_index);
+        fixture
+            .write(|f| {
+                let parameter = f.get_parameter_by_number_mut(parameter_index);
 
-            if let Some(parameter) = parameter {
-                parameter.set_value_from_layer(self.clone(), value.clone());
-            } else {
-                warn!("Parameter {} not found in fixture {}", parameter_index, f.name);
-            }
-        }).ok();
+                if let Some(parameter) = parameter {
+                    parameter.set_value_from_layer(self.clone(), value.clone());
+                } else {
+                    warn!("Parameter {} not found in fixture {}", parameter_index, f.name);
+                }
+            })
+            .ok();
 
         self.write(|layer| {
             layer.selection.fixtures.insert(fixture.clone());
-        }).ok();
+        })
+        .ok();
     }
 
     /// Remove the value of a parameter for a fixture
@@ -125,31 +125,56 @@ impl SmartRef<Layer> {
     /// This function needs to be called after the controller of a layer decides to stop influencing a parameter of
     /// a fixture, otherwise the old parameter value will be retained.
     pub fn remove_value(&self, fixture: FixtureRef, parameter_index: usize) {
-        fixture.write(|f| {
-            let parameter = f.get_parameter_by_number_mut(parameter_index);
+        fixture
+            .write(|f| {
+                let parameter = f.get_parameter_by_number_mut(parameter_index);
 
-            if let Some(parameter) = parameter {
-                parameter.remove_layer(self.clone());
-            } else {
-                warn!("Parameter {} not found in fixture {}", parameter_index, f.name);
-            }
-        }).ok();
+                if let Some(parameter) = parameter {
+                    parameter.remove_layer(self.clone());
+                } else {
+                    warn!("Parameter {} not found in fixture {}", parameter_index, f.name);
+                }
+            })
+            .ok();
 
-        //TODO: Need to remove fixtures from selection as well
-        //(Maybe call a periodic cleanup?)
+        // Remove fixture from layer if no parameters are linked to it
+        let layer_exists = fixture.read(|f| f.any_parameter_has_layer(self)).unwrap_or(true);
+
+        if !layer_exists {
+            self.write(|layer| {
+                layer.selection.fixtures.remove(&fixture);
+            })
+            .ok();
+        }
+    }
+
+    pub fn remove_fixture(&self, fixture: FixtureRef) {
+        fixture
+            .write(|f| {
+                f.remove_layer_from_parameters(self);
+            })
+            .ok();
+
+        self.write(|layer| {
+            layer.selection.fixtures.remove(&fixture);
+        })
+        .ok();
     }
 
     /// Clear all values and fixtures from the layer
     pub fn clear_values(&self) {
         self.write(|layer| {
             for fixture in layer.selection.fixtures.iter() {
-                fixture.write(|f| {
-                    f.remove_layer_from_parameters(self);
-                }).ok();
+                fixture
+                    .write(|f| {
+                        f.remove_layer_from_parameters(self);
+                    })
+                    .ok();
             }
 
             layer.selection.fixtures.clear();
-        }).ok();
+        })
+        .ok();
     }
 }
 
@@ -167,6 +192,7 @@ pub fn make_decision(values: &Vec<ParameterUpdate>) -> Option<ParameterValue> {
     /// Used later in the code
     fn cmp_modes(lhs: &BlendingMode, rhs: &BlendingMode) -> std::cmp::Ordering {
         use std::cmp::Ordering::*;
+
         use BlendingMode::*;
 
         #[inline(always)]

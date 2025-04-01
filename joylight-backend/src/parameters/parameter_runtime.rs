@@ -1,11 +1,12 @@
-use std::{collections::HashMap, time::Instant};
+use std::collections::HashMap;
+use std::time::Instant;
 
 use log::warn;
 use uuid::Uuid;
 
-use crate::{show::{make_decision, Layer}, utils::SmartRef};
-
-use super::{parameter_type, ParameterValue, ParameterValueDescription, ViewValue};
+use super::{ParameterValue, ParameterValueDescription, ViewValue, parameter_type};
+use crate::show::{Layer, make_decision};
+use crate::utils::{SmartRef, WithUuid};
 
 #[derive(Clone, Debug)]
 pub struct ParameterUpdate {
@@ -48,7 +49,7 @@ impl ParameterRuntime {
             //TODO
             view_values: Vec::new(),
             updates: HashMap::new(),
-            up_to_date: false
+            up_to_date: false,
         }
     }
 

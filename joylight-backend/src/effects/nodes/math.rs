@@ -1,13 +1,13 @@
 use std::cell::OnceCell;
 use std::time::{Instant, SystemTime};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use log::debug;
 use rand::Rng;
 use serde::de;
-use smallvec::{smallvec, SmallVec};
+use smallvec::{SmallVec, smallvec};
 
-use crate::effects::io::{packet_to_f64, NodeDataset};
+use crate::effects::io::{NodeDataset, packet_to_f64};
 use crate::effects::node::{EffectNodeDefinition, NodeType};
 use crate::parameters::parameter_view::{ViewValue, ViewValuePacket};
 

@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use smallvec::SmallVec;
 
 use crate::parameters::parameter_view::{ViewValue, ViewValuePacket};

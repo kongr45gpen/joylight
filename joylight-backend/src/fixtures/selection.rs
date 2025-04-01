@@ -4,6 +4,7 @@ use std::sync::{Arc, RwLock, Weak};
 use super::Fixture;
 use crate::fixtures::FixtureRef;
 use crate::show::Show;
+use crate::utils::WithUuid;
 
 /// A selection describes a user-defined set of fixtures. It may be a fixed group of fixtures,
 /// or updated dynamically based on some filter. For example, you can match fixtures of a
@@ -23,6 +24,7 @@ pub trait Selection {
 }
 
 /// A selection where the list of fixtures is predefined
+#[derive(Debug)]
 pub struct StrictSelection {
     pub name: String,
     pub fixtures: Vec<FixtureRef>,
@@ -91,7 +93,7 @@ impl Selection for FilteredSelection {
 
     fn update(&mut self, show: &Show) {
         self.resolved_fixtures = show
-            .fixtures
+            .get_fixtures()
             .values()
             .filter(|fixture| self.filter.eval(fixture))
             .cloned()
@@ -149,7 +151,6 @@ impl Selection for DummySelection {
 
     fn update(&mut self, _: &Show) {}
 }
-
 
 /// A selection built for easy addition/removal of fixtures
 #[derive(Debug)]

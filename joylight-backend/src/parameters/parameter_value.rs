@@ -4,8 +4,8 @@ use std::cmp::PartialOrd;
 use std::fmt::Debug;
 use std::ops::{Add, Mul};
 
-use anyhow::{anyhow, Result};
-use serde::{de, Deserialize, Serialize};
+use anyhow::{Result, anyhow};
+use serde::{Deserialize, Serialize, de};
 
 use crate::colors::RGBTuple;
 
@@ -115,7 +115,7 @@ impl Add for ParameterValue {
                 }
 
                 Ok(ParameterValue::Number(
-                    a.into_iter().zip(b.into_iter()).map(|(a, b)| a + b).collect(),
+                    a.into_iter().zip(b).map(|(a, b)| a + b).collect(),
                 ))
             }
             (ParameterValue::Integer(a), ParameterValue::Integer(b)) => {
@@ -138,7 +138,7 @@ impl Mul for ParameterValue {
 
                 // Element-wise multiplication
                 Ok(ParameterValue::Number(
-                    a.into_iter().zip(b.into_iter()).map(|(a, b)| a * b).collect(),
+                    a.into_iter().zip(b).map(|(a, b)| a * b).collect(),
                 ))
             }
             (ParameterValue::Integer(a), ParameterValue::Integer(b)) => {

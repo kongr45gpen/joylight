@@ -4,9 +4,9 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 use std::sync::{Arc, RwLock};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use log::{debug, info};
-use smallvec::{smallvec, SmallVec};
+use smallvec::{SmallVec, smallvec};
 
 use crate::effects::io::NodeDataset;
 use crate::effects::node::{EffectNode, Mark, NodeParameterValue, NodeRef};

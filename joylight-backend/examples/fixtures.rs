@@ -2,7 +2,9 @@ use joylight_backend::colors::{blue, green, red};
 use joylight_backend::fixtures::fixture_template::FixtureTemplate;
 use joylight_backend::fixtures::{Fixture, FixtureRef};
 use joylight_backend::parameters::parameter_type::ParameterType;
-use joylight_backend::parameters::parameter_value::{ColorBasedOnComponents, ParameterValueDescription, ParameterValue};
+use joylight_backend::parameters::parameter_value::{
+    ColorBasedOnComponents, ParameterValue, ParameterValueDescription,
+};
 use joylight_backend::parameters::{parameter_encoding, parameter_view};
 use joylight_backend::setup_logger;
 use joylight_backend::show::*;
@@ -218,5 +220,15 @@ fn main() {
     show.eval_parameters();
 
     println!("{:#?}", show);
-    println!("{:#?}", show.fixtures.iter().next().unwrap().1.get().unwrap().read().unwrap());
+    println!(
+        "{:#?}",
+        show.get_fixtures()
+            .values()
+            .next()
+            .unwrap()
+            .get()
+            .unwrap()
+            .read()
+            .unwrap()
+    );
 }

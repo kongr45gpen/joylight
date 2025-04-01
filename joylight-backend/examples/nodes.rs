@@ -1,12 +1,12 @@
-use std::sync::{Arc, RwLock};
 use std::time::Instant;
 
 use joylight_backend::effects::io::NodeDataset;
 use joylight_backend::effects::node::link;
 use joylight_backend::effects::nodes::output::output;
-use joylight_backend::fixtures::{Filter, FixtureRef};
+use joylight_backend::fixtures::{Filter, FixtureRef, Selection};
 use joylight_backend::parameters::parameter_view::ViewValue;
 use joylight_backend::show::Show;
+use joylight_backend::utils::SmartRef;
 use joylight_backend::{effects, setup_logger};
 use log::*;
 use smallvec::smallvec;
@@ -109,14 +109,13 @@ fn main() {
         show.add_fixture(fixture2);
         show.add_fixture(fixture3);
 
-        let selection = Arc::new(RwLock::new(
-            joylight_backend::fixtures::selection::FilteredSelection::new(
+        let selection: SmartRef<dyn Selection> =
+            SmartRef::new_from_move_without_uuid(joylight_backend::fixtures::selection::FilteredSelection::new(
                 "all",
                 Filter::Predicate(Box::new(|f| f.read(|f| f.name == "Dimmer2").unwrap_or(false))),
-            ),
-        ));
+            ));
 
-        show.add_selection(selection.clone());
+        show.add_selection(&selection);
         show.refresh_fixtures();
 
         let output = output("brightness", selection);
@@ -129,9 +128,9 @@ fn main() {
         let dbg = || {
             info!(
                 "Fixture brightnesses: {:?}",
-                show.fixtures
-                    .iter()
-                    .map(|f| f.1.read(|f| f.get_parameter_values().cloned().collect::<Vec<_>>()))
+                show.get_fixtures()
+                    .values()
+                    .map(|f| f.read(|f| f.get_parameter_values().cloned().collect::<Vec<_>>()))
                     .collect::<Vec<_>>()
             )
         };

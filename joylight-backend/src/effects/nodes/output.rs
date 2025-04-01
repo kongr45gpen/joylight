@@ -1,16 +1,17 @@
 use std::fmt::format;
 use std::sync::{Arc, RwLock};
 
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use chumsky::debug;
 use log::*;
 
-use crate::effects::io::{packet_to_f64, NodeDataset};
+use crate::effects::io::{NodeDataset, packet_to_f64};
 use crate::effects::node::{EffectNodeDefinition, NodeType};
 use crate::fixtures::Selection;
 use crate::parameters::{self, parameter_value};
+use crate::utils::{SmartRef, WithUuid};
 
-pub fn output(named_parameter: &str, selection: Arc<RwLock<dyn Selection>>) -> EffectNodeDefinition {
+pub fn output(named_parameter: &str, selection: SmartRef<dyn Selection>) -> EffectNodeDefinition {
     let named_parameter = named_parameter.to_string();
 
     EffectNodeDefinition {
@@ -21,11 +22,11 @@ pub fn output(named_parameter: &str, selection: Arc<RwLock<dyn Selection>>) -> E
         processor: Box::new(move |inputs: &NodeDataset, _, _| {
             inputs.check_count(1)?;
 
-            let selection = selection.read().unwrap();
+            let fixtures = selection.read(|s| s.fixtures().clone()).unwrap();
 
             let paket = packet_to_f64(inputs.packets.first().unwrap())?;
 
-            for fixture in selection.fixtures() {
+            for fixture in fixtures {
                 debug!(
                     "iterating over fixture {} for parameter {}",
                     fixture.uuid(),

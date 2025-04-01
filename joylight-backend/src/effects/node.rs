@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 
 use anyhow::{Context, Result};
-use smallvec::{smallvec, SmallVec};
+use smallvec::{SmallVec, smallvec};
 
 use super::io::NodeDataset;
 

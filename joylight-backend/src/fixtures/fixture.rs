@@ -3,15 +3,15 @@ use std::iter::Map;
 use std::sync::{Arc, RwLock};
 use std::time::Instant;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use log::warn;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::fixtures::fixture_template::FixtureTemplate;
 use crate::parameters::parameter_value::ParameterValue;
-use crate::parameters::{ParameterRuntime, ParameterValueDescription, ViewValue};
-use crate::show::{make_decision, Layer};
+use crate::parameters::{ParameterRuntime, ParameterUpdate, ParameterValueDescription, ViewValue};
+use crate::show::{Layer, make_decision};
 use crate::utils::{SmartRef, WithUuid};
 
 /// An instance of a fixture with multiple parameter values.
@@ -35,7 +35,7 @@ impl Fixture {
         let parameters = template
             .parameters
             .iter()
-            .map(|parameter_type| ParameterRuntime::new_from_type(parameter_type))
+            .map(ParameterRuntime::new_from_type)
             .collect();
 
         Fixture {
@@ -79,9 +79,7 @@ impl Fixture {
     }
 
     pub fn get_parameter_values(&self) -> impl Iterator<Item = &ParameterValue> {
-        self.parameters
-            .iter()
-            .map(|parameter| &parameter.value)
+        self.parameters.iter().map(|parameter| &parameter.value)
     }
 
     /// Set a parameter value directly
@@ -109,12 +107,12 @@ impl Fixture {
     /// Update all parameters of the fixture based on the the [ParameterUpdate]s in each [ParameterRuntime]
     pub fn update_parameters(&mut self) {
         for (idx, parameter) in self.parameters.iter_mut().enumerate() {
-            if !parameter.up_to_date  {
+            if !parameter.up_to_date {
                 continue;
             }
 
             // TODO: There is a better way to pass this without having to convert to a Vec
-            let values = parameter.updates.iter().map(|(_, update)| update).cloned().collect::<Vec<_>>();
+            let values = parameter.updates.values().cloned().collect::<Vec<_>>();
 
             let decision = make_decision(&values);
 
@@ -123,7 +121,10 @@ impl Fixture {
             } else {
                 // Value could not be generated, e.g. due to there being no updates on active layers.
                 // Go back to the default value.
-                let result = self.template.parameters.get(idx)
+                let result = self
+                    .template
+                    .parameters
+                    .get(idx)
                     .map(|ptype| parameter.value = ptype.default_value.clone());
 
                 if result.is_none() {
@@ -135,9 +136,18 @@ impl Fixture {
         }
     }
 
+    /// Returns true if the `layer` has [ParameterUpdate]s for any of the parameters
+    pub fn any_parameter_has_layer(&self, layer: &SmartRef<Layer>) -> bool {
+        self.parameters
+            .iter()
+            .any(|parameter| parameter.updates.contains_key(&layer.uuid()))
+    }
+
+    /// Removes any [ParameterUpdate]s from the given layer for all parameters of the fixture
     pub fn remove_layer_from_parameters(&mut self, layer: &SmartRef<Layer>) {
         for parameter in self.parameters.iter_mut() {
             parameter.updates.remove(&layer.uuid());
+            parameter.up_to_date = false;
         }
     }
 }

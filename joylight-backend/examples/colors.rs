@@ -1,5 +1,5 @@
 use gtk::prelude::*;
-use gtk::{glib, Application, ApplicationWindow, ColorButton, Label, TextView};
+use gtk::{Application, ApplicationWindow, ColorButton, Label, TextView, glib};
 use gtk4 as gtk;
 use gtk4::gdk::RGBA;
 use joylight_backend::colors;

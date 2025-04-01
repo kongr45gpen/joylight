@@ -2,6 +2,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 #![allow(unused_imports)]
+#![feature(coerce_unsized)]
 
 pub mod colors;
 pub mod effects;
