@@ -4,7 +4,7 @@ use std::sync::{Arc, RwLock};
 use std::time::Instant;
 
 use anyhow::{Context, Result, anyhow};
-use log::warn;
+use log::{debug, warn};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -86,7 +86,7 @@ impl Fixture {
     ///
     /// This overrides a parameter value immediately. However, it's recommended to use [Layer]s within a show to
     /// properly set parameters based on priorities.
-    pub fn set_parameter(&mut self, index: usize, value: ParameterValue) -> Result<()> {
+    pub fn overwrite_parameter(&mut self, index: usize, value: ParameterValue) -> Result<()> {
         let parameter = self
             .parameters
             .get_mut(index)
@@ -107,12 +107,19 @@ impl Fixture {
     /// Update all parameters of the fixture based on the the [ParameterUpdate]s in each [ParameterRuntime]
     pub fn update_parameters(&mut self) {
         for (idx, parameter) in self.parameters.iter_mut().enumerate() {
-            if !parameter.up_to_date {
+            if parameter.up_to_date {
                 continue;
             }
 
             // TODO: There is a better way to pass this without having to convert to a Vec
             let values = parameter.updates.values().cloned().collect::<Vec<_>>();
+
+            debug!(
+                "Fixture {}: Deciding between {} updates for parameter {}",
+                self.name,
+                values.len(),
+                idx
+            );
 
             let decision = make_decision(&values);
 

@@ -1,3 +1,5 @@
+//! Selections allow picking a static or dynamic subset of fixtures based on the user's whim.
+
 use std::collections::{BTreeSet, HashSet};
 use std::sync::{Arc, RwLock, Weak};
 
@@ -154,12 +156,12 @@ impl Selection for DummySelection {
 
 /// A selection built for easy addition/removal of fixtures
 #[derive(Debug)]
-pub struct FluidStrictSelection {
+pub struct MutableStrictSelection {
     pub name: String,
     pub fixtures: BTreeSet<FixtureRef>,
 }
 
-impl Selection for FluidStrictSelection {
+impl Selection for MutableStrictSelection {
     fn name(&self) -> &str {
         &self.name
     }

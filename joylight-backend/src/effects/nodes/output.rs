@@ -39,7 +39,7 @@ pub fn output(named_parameter: &str, selection: SmartRef<dyn Selection>) -> Effe
                             .ok_or_else(|| anyhow!("Parameter {} not found", named_parameter))
                             .and_then(|index| {
                                 debug!("Found parameter {:?} corresponding to name {}", index, named_parameter);
-                                fxt.set_parameter(
+                                fxt.overwrite_parameter(
                                     index,
                                     parameter_value::ParameterValue::Number(paket.iter().copied().collect()),
                                 )

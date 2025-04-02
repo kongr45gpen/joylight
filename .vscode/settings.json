@@ -1,0 +1,8 @@
+{
+    "rust-analyzer.diagnostics.disabled": [
+        "macro-error"
+    ],
+    "rust-analyzer.runnables.extraArgs": [
+        "+nightly"
+    ]
+}

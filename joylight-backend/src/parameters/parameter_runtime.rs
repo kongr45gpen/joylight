@@ -2,9 +2,10 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use log::warn;
+use smallvec::smallvec;
 use uuid::Uuid;
 
-use super::{ParameterValue, ParameterValueDescription, ViewValue, parameter_type};
+use super::{ParameterValue, ParameterValueDescription, ViewValue, ViewValuePacket, parameter_type};
 use crate::show::{Layer, make_decision};
 use crate::utils::{SmartRef, WithUuid};
 
@@ -28,7 +29,7 @@ pub struct ParameterRuntime {
     pub value: ParameterValue,
     /// The parameter's view representation. This is stored in addition to [ParameterRuntime::value], since
     /// there may not be a 1:1 reverse mapping from a view to a value.
-    pub view_values: Vec<ViewValue>,
+    pub view_values: ViewValuePacket,
     /// Any updates to the parameter value that are queued for the next refresh.
     ///
     /// Whenever a fixture is added or removed from a layer, and whenever a layer is added or removed,
@@ -47,7 +48,7 @@ impl ParameterRuntime {
             description,
             value,
             //TODO
-            view_values: Vec::new(),
+            view_values: smallvec![],
             updates: HashMap::new(),
             up_to_date: false,
         }

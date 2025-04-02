@@ -206,11 +206,11 @@ fn main() {
     let layer1 = SmartRef::new_from_move(layer1);
     let layer2 = SmartRef::new_from_move(layer2);
 
-    layer1.set_value(arc_fixture.clone(), 0, &ParameterValue::Number(vec![0.5]));
-    layer1.set_value(arc_fixture.clone(), 1, &ParameterValue::Number(vec![0.5]));
+    layer1.set_value(&arc_fixture, 0, &ParameterValue::Number(vec![0.5]));
+    layer1.set_value(&arc_fixture, 1, &ParameterValue::Number(vec![0.5]));
 
-    layer2.set_value(arc_fixture.clone(), 0, &ParameterValue::Number(vec![0.75]));
-    layer2.set_value(arc_fixture.clone(), 1, &ParameterValue::Number(vec![0.75]));
+    layer2.set_value(&arc_fixture, 0, &ParameterValue::Number(vec![0.75]));
+    layer2.set_value(&arc_fixture, 1, &ParameterValue::Number(vec![0.75]));
 
     let mut show = Show::default();
     show.add_fixture(arc_fixture);

@@ -42,7 +42,7 @@ where
     /// an error will be returned and logged.
     pub fn read<F, R>(&self, f: F) -> Result<R>
     where
-        F: Fn(&T) -> R,
+        F: FnOnce(&T) -> R,
     {
         //TODO: Log errors
         let arc = Some(&self.value)
@@ -59,7 +59,7 @@ where
     /// an error will be returned and logged.
     pub fn write<F, R>(&self, f: F) -> Result<R>
     where
-        F: Fn(&mut T) -> R,
+        F: FnOnce(&mut T) -> R,
     {
         let arc = Some(&self.value)
             .ok_or_else(|| anyhow::anyhow!("Attempted to edit entity {} which has been removed", self.uuid))?;
@@ -81,8 +81,6 @@ where
         Self::new_with_uuid(arc, uuid)
     }
 }
-
-impl<T> SmartRef<T> {}
 
 impl<T> SmartRef<T>
 where

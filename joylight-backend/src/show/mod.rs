@@ -12,7 +12,9 @@
 //! the layers with new information, and sets the parameter values accordingly.
 
 pub mod layer;
+pub mod scene;
 pub mod show;
 
 pub use layer::*;
+pub use scene::*;
 pub use show::*;

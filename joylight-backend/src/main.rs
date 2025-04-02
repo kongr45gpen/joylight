@@ -11,24 +11,34 @@ mod parameters;
 mod show;
 mod utils;
 
-use std::any::TypeId;
-use std::boxed::Box;
-use std::collections::BTreeMap;
-use std::time::SystemTime;
-use std::{thread, time};
-
-use effects::io::NodeDataset;
-use effects::node::NodeParameterValue;
-use fixtures::{Fixture, FixtureTemplate};
 use joylight_backend::setup_logger;
-use log::{debug, error, info, trace, warn};
-use parameters::parameter_type::ParameterType;
-use parameters::parameter_value::ParameterValue;
-use parameters::parameter_view;
-use serde_json::json;
+use log::info;
+use tokio::time::{self, Duration};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     setup_logger();
 
     info!("Hello, world!");
+
+    let mut interval1 = time::interval(Duration::from_secs(1));
+    let mut interval2 = time::interval(Duration::from_millis(332));
+
+    // task_interval.tick().await;
+
+    let a = tokio::spawn(async move {
+        loop {
+            interval1.tick().await;
+            info!("Tick");
+        }
+    });
+
+    let b = tokio::spawn(async move {
+        loop {
+            interval2.tick().await;
+            info!("Tick2");
+        }
+    });
+
+    tokio::join!(a);
 }

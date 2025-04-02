@@ -2,9 +2,10 @@
 
 use std::fmt::Debug;
 
+use anyhow::{Result, anyhow};
 use dyn_clone::DynClone;
 use serde::{Deserialize, Serialize};
-use smallvec::SmallVec;
+use smallvec::{SmallVec, smallvec};
 
 use crate::colors;
 use crate::colors::{ColorModel, RGBTuple};
@@ -29,13 +30,9 @@ pub type ViewValuePacket = SmallVec<[ViewValue; N]>;
 ///
 /// It can be reliably converted to and from the corresponding parameter value
 pub trait ParameterView: DynClone + Debug {
-    fn to_value(&self, input: Vec<ViewValue>, value: &mut ParameterValue) -> Result<(), ()> {
-        todo!()
-    }
+    fn to_value(&self, input: &ViewValuePacket) -> Result<ParameterValue>;
 
-    fn from_value(&self, value: &ParameterValue) -> Result<Vec<ViewValue>, ()> {
-        todo!()
-    }
+    fn from_value(&self, value: &ParameterValue) -> Result<ViewValuePacket>;
 }
 
 /// A single scalar slider
@@ -48,24 +45,22 @@ pub struct SliderView {
 }
 
 impl ParameterView for SliderView {
-    fn from_value(&self, value: &ParameterValue) -> Result<Vec<ViewValue>, ()> {
+    fn from_value(&self, value: &ParameterValue) -> Result<ViewValuePacket> {
         let ParameterValue::Number(numbers) = value else {
-            return Err(());
+            return Err(anyhow!("SliderView expects a numeric value"));
         };
 
-        numbers.first().map(|number| vec![ViewValue::F64(*number)]).ok_or(())
+        numbers
+            .first()
+            .map(|number| smallvec![ViewValue::F64(*number)])
+            .ok_or_else(|| anyhow!("Input array is empty"))
     }
 
-    fn to_value(&self, input: Vec<ViewValue>, value: &mut ParameterValue) -> Result<(), ()> {
-        let ParameterValue::Number(numbers) = value else {
-            return Err(());
-        };
-
+    fn to_value(&self, input: &ViewValuePacket) -> Result<ParameterValue> {
         if let Some(ViewValue::F64(number)) = input.first() {
-            numbers[0] = *number;
-            Ok(())
+            Ok(ParameterValue::Number(vec![*number]))
         } else {
-            Err(())
+            Err(anyhow!("SliderView expects a numeric view"))
         }
     }
 }
@@ -126,7 +121,15 @@ pub struct ColorComponentView {
     pub name: String,
 }
 
-impl ParameterView for ColorComponentView {}
+impl ParameterView for ColorComponentView {
+    fn to_value(&self, input: &ViewValuePacket) -> Result<ParameterValue> {
+        todo!()
+    }
+
+    fn from_value(&self, value: &ParameterValue) -> Result<ViewValuePacket> {
+        todo!()
+    }
+}
 
 pub fn rgb() -> ColorComponentView {
     ColorComponentView {
@@ -196,7 +199,15 @@ pub struct ColorModelView {
     pub name: String,
 }
 
-impl ParameterView for ColorModelView {}
+impl ParameterView for ColorModelView {
+    fn to_value(&self, input: &ViewValuePacket) -> Result<ParameterValue> {
+        todo!()
+    }
+
+    fn from_value(&self, value: &ParameterValue) -> Result<ViewValuePacket> {
+        todo!()
+    }
+}
 
 pub fn hsv() -> ColorModelView {
     ColorModelView {
