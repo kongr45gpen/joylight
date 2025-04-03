@@ -12,13 +12,14 @@ use crate::parameters::{ParameterValue, ParameterView, ViewValuePacket};
 use crate::utils::{SmartRef, WithUuid};
 
 /// Used as a key for [SceneValue]s
-#[derive(Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 struct FixtureParameterPair {
     pub fixture: FixtureRef,
     pub parameter: usize,
 }
 
 /// A view value and associated view for a parameter change, as stored in a scene
+#[derive(Debug)]
 pub struct SceneValue {
     pub value: ViewValuePacket,
     pub view: Box<dyn ParameterView>,
@@ -28,6 +29,7 @@ pub struct SceneValue {
 /// A scene is a collection of parameter values for a set of fixtures. The scene maps specific
 /// fixtures and parameters to values. In that sense, it cannot be used for more dynamic assignments,
 /// e.g. setting the brightness or color of a generic [crate::fixtures::Selection].
+#[derive(Debug)]
 pub struct Scene {
     layer: SmartRef<Layer>,
     uuid: Uuid,

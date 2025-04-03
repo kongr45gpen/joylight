@@ -7,6 +7,7 @@
 //!   a template inside a [Show]. Each fixture contains the [ParameterValue]s corresponding
 //!   one-to-one to the template's parameter types.
 
+pub mod common_fixtures;
 pub mod fixture;
 pub mod fixture_template;
 pub mod selection;

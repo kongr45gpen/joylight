@@ -6,7 +6,7 @@ use anyhow::Context;
 use log::*;
 use uuid::Uuid;
 
-use super::layer::*;
+use super::{layer::*, Scene};
 use crate::fixtures::FixtureRef;
 use crate::fixtures::selection::Selection;
 use crate::parameters::parameter_value::ParameterValue;
@@ -20,6 +20,8 @@ pub struct Show {
     selections: Vec<WeakRef<dyn Selection>>,
     /// A list of all layers running in the show
     layers: Vec<SmartRef<Layer>>,
+    /// The program is a high-priority scene where the user edits
+    pub program: Scene,
 }
 
 impl Show {

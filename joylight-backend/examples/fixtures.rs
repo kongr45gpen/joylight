@@ -9,50 +9,18 @@ use joylight_backend::parameters::{parameter_encoding, parameter_view};
 use joylight_backend::setup_logger;
 use joylight_backend::show::*;
 use joylight_backend::utils::SmartRef;
+use joylight_backend::fixtures::common_fixtures::*;
 
 fn main() {
     setup_logger();
 
-    let brightness = ParameterType::new(
-        "brightness",
-        "Brightness",
-        Box::new(parameter_view::percentage()),
-        Box::new(parameter_encoding::DMXMappingTransformer {
-            input_min: 0.0,
-            input_max: 100.0,
-            size: 1,
-            endianness: parameter_encoding::Endianness::Big,
-        }),
-        ParameterValueDescription::Number(1),
-        ParameterValue::Number(vec![0.0]),
-        None,
-    );
-
-    let color_rgb = ParameterType::new(
-        "color_rgb",
-        "RGB Color",
-        Box::new(parameter_view::rgb()),
-        Box::new(parameter_encoding::DMXMappingTransformer {
-            input_min: 0.0,
-            input_max: 255.0,
-            size: 1,
-            endianness: parameter_encoding::Endianness::Big,
-        }),
-        ParameterValueDescription::ColorBasedOnComponents(ColorBasedOnComponents {
-            components: vec![red(), green(), blue()],
-            subtractive: false,
-        }),
-        ParameterValue::Number(vec![255.0, 255.0, 255.0]),
-        None,
-    );
-
     let three_fixture_template = FixtureTemplate {
         name: "ThreeFixture".to_string(),
         parameters: vec![
-            brightness.clone(),
-            brightness.clone(),
-            color_rgb.clone(),
-            color_rgb.clone(),
+            BRIGHTNESS.clone(),
+            BRIGHTNESS.clone(),
+            COLOR_RGB.clone(),
+            COLOR_RGB.clone(),
         ],
     };
 

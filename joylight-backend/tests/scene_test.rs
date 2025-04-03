@@ -1,3 +1,4 @@
+use joylight_backend::fixtures::common_fixtures::DIMMER;
 use joylight_backend::fixtures::{Fixture, FixtureRef, FixtureTemplate};
 use joylight_backend::parameters::{
     ParameterType, ParameterValue, ParameterValueDescription, ViewValue, parameter_encoding, parameter_view,
@@ -10,27 +11,7 @@ use smallvec::smallvec;
 fn scene_for_single_fixture() {
     setup_logger();
 
-    let brightness = ParameterType::new(
-        "brightness",
-        "Brightness",
-        Box::new(parameter_view::percentage()),
-        Box::new(parameter_encoding::DMXMappingTransformer {
-            input_min: 0.0,
-            input_max: 100.0,
-            size: 1,
-            endianness: parameter_encoding::Endianness::Big,
-        }),
-        ParameterValueDescription::Number(1),
-        ParameterValue::Number(vec![0.0]),
-        None,
-    );
-
-    let fixture_template = FixtureTemplate {
-        name: "SingleFixture".to_string(),
-        parameters: vec![brightness.clone()],
-    };
-
-    let fixture = FixtureRef::new_from_move(Fixture::new("SingleFixture", &fixture_template));
+    let fixture = FixtureRef::new_from_move(Fixture::new("SingleFixture", &DIMMER));
 
     let mut scene = Scene::default();
 
