@@ -10,10 +10,14 @@
 pub mod common_fixtures;
 pub mod fixture;
 pub mod fixture_template;
+pub mod library;
+pub mod patches;
 pub mod selection;
 
 pub use fixture::*;
 pub use fixture_template::*;
+pub use library::*;
+pub use patches::*;
 pub use selection::*;
 
 use crate::parameters::{ParameterType, ParameterValue};

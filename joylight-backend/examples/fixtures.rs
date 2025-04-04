@@ -1,6 +1,6 @@
 use joylight_backend::colors::{blue, green, red};
 use joylight_backend::fixtures::fixture_template::FixtureTemplate;
-use joylight_backend::fixtures::{Fixture, FixtureRef};
+use joylight_backend::fixtures::{DMXPatch, Fixture, FixtureRef};
 use joylight_backend::parameters::parameter_type::ParameterType;
 use joylight_backend::parameters::parameter_value::{
     ColorBasedOnComponents, ParameterValue, ParameterValueDescription,
@@ -24,7 +24,7 @@ fn main() {
         ],
     };
 
-    let three_fixture = Fixture::new("BabisOFlou", &three_fixture_template);
+    let three_fixture = Fixture::new("BabisOFlou", &three_fixture_template, DMXPatch::new(0, 0));
 
     println!("{:?}", three_fixture);
 

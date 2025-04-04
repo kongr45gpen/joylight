@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::fmt::Debug;
 use std::iter::Map;
 use std::sync::{Arc, RwLock};
@@ -14,6 +15,8 @@ use crate::parameters::{ParameterRuntime, ParameterUpdate, ParameterValueDescrip
 use crate::show::{Layer, make_decision};
 use crate::utils::{SmartRef, WithUuid};
 
+use super::Patch;
+
 /// An instance of a fixture with multiple parameter values.
 ///
 /// A show may have multiple fixture instances of the same [FixtureTemplate].
@@ -24,6 +27,7 @@ pub struct Fixture {
     pub template: FixtureTemplate,
     /// A vector of parameters, each associated to the [ParameterType] of the [FixtureTemplate]
     parameters: Vec<ParameterRuntime>,
+    pub patch: Box<dyn Patch>
 }
 
 /// Thread-safe reference to a fixture, to be passed around
@@ -31,7 +35,7 @@ pub type FixtureRef = SmartRef<Fixture>;
 
 impl Fixture {
     /// Create a new fixture based on a template, setting parameter values to their defaults
-    pub fn new(name: &str, template: &FixtureTemplate) -> Fixture {
+    pub fn new(name: &str, template: &FixtureTemplate, patch: impl Patch) -> Fixture {
         let parameters = template
             .parameters
             .iter()
@@ -43,6 +47,7 @@ impl Fixture {
             uuid: Uuid::new_v4(),
             template: template.clone(),
             parameters,
+            patch: Box::new(patch)
         }
     }
 

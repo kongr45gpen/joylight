@@ -3,7 +3,8 @@ use std::time::Instant;
 use joylight_backend::effects::io::NodeDataset;
 use joylight_backend::effects::node::link;
 use joylight_backend::effects::nodes::output::output;
-use joylight_backend::fixtures::{Filter, FixtureRef, Selection};
+use joylight_backend::fixtures::common_fixtures::DIMMER;
+use joylight_backend::fixtures::{Filter, Fixture, FixtureRef, NullPatch, Selection};
 use joylight_backend::parameters::parameter_view::ViewValue;
 use joylight_backend::show::Show;
 use joylight_backend::utils::SmartRef;
@@ -78,31 +79,9 @@ fn main() {
     {
         println!("Node processing test 4");
 
-        let brightness = joylight_backend::parameters::parameter_type::ParameterType::new(
-            "brightness",
-            "Brightness",
-            Box::new(joylight_backend::parameters::parameter_view::percentage()),
-            Box::new(
-                joylight_backend::parameters::parameter_encoding::DMXMappingTransformer {
-                    input_min: 0.0,
-                    input_max: 100.0,
-                    size: 1,
-                    endianness: joylight_backend::parameters::parameter_encoding::Endianness::Big,
-                },
-            ),
-            joylight_backend::parameters::parameter_value::ParameterValueDescription::Number(1),
-            joylight_backend::parameters::parameter_value::ParameterValue::Number(vec![0.0]),
-            None,
-        );
-
-        let fixtemp = joylight_backend::fixtures::fixture_template::FixtureTemplate {
-            name: "Dimmer".to_string(),
-            parameters: vec![brightness.clone()],
-        };
-
-        let fixture1 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer1", &fixtemp));
-        let fixture2 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer2", &fixtemp));
-        let fixture3 = FixtureRef::new_from_move(joylight_backend::fixtures::Fixture::new("Dimmer3", &fixtemp));
+        let fixture1 = FixtureRef::new_from_move(Fixture::new("Dimmer1", &DIMMER, NullPatch{}));
+        let fixture2 = FixtureRef::new_from_move(Fixture::new("Dimmer2", &DIMMER, NullPatch{}));
+        let fixture3 = FixtureRef::new_from_move(Fixture::new("Dimmer3", &DIMMER, NullPatch{}));
 
         let mut show = Show::default();
         show.add_fixture(fixture1);

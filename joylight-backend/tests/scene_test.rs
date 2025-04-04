@@ -1,5 +1,5 @@
 use joylight_backend::fixtures::common_fixtures::DIMMER;
-use joylight_backend::fixtures::{Fixture, FixtureRef, FixtureTemplate};
+use joylight_backend::fixtures::{Fixture, FixtureRef, FixtureTemplate, NullPatch};
 use joylight_backend::parameters::{
     ParameterType, ParameterValue, ParameterValueDescription, ViewValue, parameter_encoding, parameter_view,
 };
@@ -11,7 +11,7 @@ use smallvec::smallvec;
 fn scene_for_single_fixture() {
     setup_logger();
 
-    let fixture = FixtureRef::new_from_move(Fixture::new("SingleFixture", &DIMMER));
+    let fixture = FixtureRef::new_from_move(Fixture::new("SingleFixture", &DIMMER, NullPatch{}));
 
     let mut scene = Scene::default();
 
